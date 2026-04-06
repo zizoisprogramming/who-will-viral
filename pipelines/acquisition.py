@@ -17,8 +17,11 @@ class YoutubePipeline:
 
 
     def __init__(self):
-        load_dotenv()
+        success = load_dotenv()
+        if not success:
+            raise Exception("Failed to load .env file")
         api_key = os.getenv('YOUTUBE_API_KEY')
+        print("API Key Loaded:", api_key)
         logging.basicConfig(
             filename='acquisition.log',
             filemode='a',
@@ -76,8 +79,8 @@ class YoutubePipeline:
         return final_df
     
 
-# pipeline = YoutubePipeline()
-# df = pipeline.run()
-# df.to_csv("example.csv")
-# print(df.shape)
-# print(df[:5])
+pipeline = YoutubePipeline()
+df = pipeline.run()
+df.to_csv("example.csv")
+print(df.shape)
+print(df[:5])

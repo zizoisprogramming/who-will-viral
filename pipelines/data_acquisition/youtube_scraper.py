@@ -349,7 +349,7 @@ class YoutubeScraper:
         try:
             filename = os.path.join(self.output_dir, filename)
             with open(filename, 'w') as f:
-                json.dump(videos, f, indent=2)
+                json.dump(videos, f, indent=4)
             self.logger.info(f"Progress saved to {filename}")
         except Exception as e:
             self.logger.error(f"Failed to save progress: {e}")

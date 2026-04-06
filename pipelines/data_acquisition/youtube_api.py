@@ -450,7 +450,7 @@ class YoutubeAPI:
     def save_json(self, data: Any, path: str) -> None:
         os.makedirs('/'.join(path.split("/")[:-1]), exist_ok=True)
         with open(path, "w") as fh:
-            json.dump(data, fh, indent=2)
+            json.dump(data, fh, indent=4)
         self.logger.info("Saved JSON → %s", path)
 
 
