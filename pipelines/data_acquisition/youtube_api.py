@@ -46,7 +46,7 @@ class RateLimiter:
         Window length in seconds (default: 3 600 = 1 hour).
     """
 
-    def __init__(self, max_requests: int = 100, time_window: int = 3_600, logger = None) -> None:
+    def __init__(self, max_requests: int = 10000, time_window: int = 3_600, logger = None) -> None:
         self.max_requests = max_requests
         self.time_window = time_window
         self._timestamps: list[float] = []
@@ -151,7 +151,7 @@ class YoutubeAPI:
         self.logger.info("Enriching %d unique video IDs from base CSV", len(all_ids))
 
         backup = self.backup_dir + "/youtube_api_backup.json"
-        if backup.exists():
+        if os.path.exists(backup):
             items = self.load_json(backup)
         else:
             items = self.get_video_details_batched(all_ids)
@@ -160,15 +160,16 @@ class YoutubeAPI:
         api_df = self.items_to_dataframe(items)
 
         # Keep only the extra columns we fetched; merge on video_id
-        api_df.columns = self._flatten_column_names(api_df.columns.tolist())
-        merged = base_df.merge(api_df, left_on="video_id", right_on="id", how="left")
+        # api_df.columns = self._flatten_column_names(api_df.columns.tolist())
+        api_df.rename(columns=rename_cols, inplace=True)
+        merged = base_df.merge(api_df, on="video_id", how="left")
         merged.drop(columns=["id"], errors="ignore", inplace=True)
         self.logger.info("Enriched base DataFrame shape: %s", merged.shape)
         return merged
 
     def _fetch_trending(self) -> pd.DataFrame:
         backup = self.backup_dir + "/trending_videos_backup.json"
-        if backup.exists():
+        if os.path.exists(backup):
             items = self.load_json(backup)
         else:
             items = self.get_trending_videos()
@@ -188,7 +189,7 @@ class YoutubeAPI:
         detail_backup = self.backup_dir + "/non_trending_videos_backup.json"
 
         # --- search phase ---
-        if search_backup.exists():
+        if os.path.exists(search_backup):
             search_items = self.load_json(search_backup)
         else:
             search_items = []
@@ -208,7 +209,7 @@ class YoutubeAPI:
         self.logger.info("%d new non-trending IDs after de-duplication", len(new_ids))
 
         # --- detail phase ---
-        if detail_backup.exists():
+        if os.path.exists(detail_backup):
             detail_items = self.load_json(detail_backup)
         else:
             detail_items = self.get_video_details_batched(new_ids)
@@ -434,7 +435,7 @@ class YoutubeAPI:
         today = today or pd.Timestamp.now().strftime("%Y-%m-%d")
         df["is_trending"]      = is_trending
         df["trending_date"]    = today
-        df["comments_disabled"] = np.nan
+        # df["comments_disabled"] = np.nan
         return df
 
 

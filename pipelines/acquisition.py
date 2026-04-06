@@ -1,19 +1,11 @@
 from urllib.robotparser import RobotFileParser
 from requests.adapters import HTTPAdapter
-from urllib.parse import urlparse
-from googleapiclient.discovery import build
 from dotenv import load_dotenv
-from collections import deque
-from bs4 import BeautifulSoup
-from tqdm.asyncio import tqdm
 from urllib3 import Retry
 import pandas as pd
 import requests
 import logging
-import json
-import time
 import os
-import re
 
 from pipelines.data_acquisition.youtube_scraper import YoutubeScraper
 from pipelines.data_acquisition.youtube_database import YoutubeDatabase
@@ -37,9 +29,9 @@ class YoutubePipeline:
 
         self.session = requests.Session()
         self.session.headers.update(self.BASE_HEADERS)
-        self.base_csv = '/Users/ziadsamer/Documents/who-will-viral/data/youtube/youtube.csv'
-        self.output_csv = '/Users/ziadsamer/Documents/who-will-viral/data/youtube/youtube_enriched.csv'
-        self.backup_dir = '/Users/ziadsamer/Documents/who-will-viral/data/youtube/backup'
+        self.base_csv = os.getenv("BASE_CSV", "./data/youtube/youtube.csv")
+        self.output_csv = os.getenv("OUTPUT_CSV", "./data/youtube/youtube_enriched.csv")
+        self.backup_dir = os.getenv("BACKUP_DIR", "./data/youtube/backup")
 
         retry_strategy = Retry(
             total=3, 
@@ -53,10 +45,10 @@ class YoutubePipeline:
         self.today      = pd.Timestamp.now().strftime("%Y-%m-%d")
         self.youtube_api = YoutubeAPI(
             api_key = api_key, logger=self.logger,
-            base_csv=self.base_csv, backup_dir="/Users/ziadsamer/Documents/who-will-viral/data/youtube/backup",
+            base_csv=self.base_csv, backup_dir=self.backup_dir,
             today=self.today
         )
-        self.youtube_scraper = YoutubeScraper(logger=self.logger, session=self.session)
+        self.youtube_scraper = YoutubeScraper(logger=self.logger, session=self.session,output_dir=self.backup_dir)
         self.youtube_database = YoutubeDatabase(logger=self.logger, path=self.base_csv)
 
     def run(self) -> pd.DataFrame:
@@ -82,3 +74,9 @@ class YoutubePipeline:
         final_df.to_csv(self.output_csv, index=False)
 
         return final_df
+    
+
+pipeline = YoutubePipeline()
+df = pipeline.run()
+print(df.shape)
+print(df[:5])

@@ -10,7 +10,7 @@ import tqdm
 
 
 class YoutubeDatabase:
-    def __init__(self, logger=None, path='youtube_data.db'):
+    def __init__(self, logger=None, path='youtube_data.csv'):
         self.logger = logger
         self.path = path
 
