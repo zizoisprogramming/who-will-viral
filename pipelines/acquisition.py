@@ -65,6 +65,7 @@ class YoutubePipeline:
 
         # 2. Enrich with YouTube API
         final_df = self.youtube_api.run(base_df)  
+        final_df.to_csv("api.csv", index=False)
 
         # 3. Scrape videos
         video_ids = final_df['video_id'].tolist()   
