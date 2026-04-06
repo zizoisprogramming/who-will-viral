@@ -96,7 +96,6 @@ class YoutubeScraper:
             "chapter_count":      len(chapters),
             "chapters":           chapters,
             "playability_status": playability["status"],
-            "is_age_restricted":  playability["is_age_restricted"],
             "supports_miniplayer":playability["supports_miniplayer"],
             "card_count":         cards["card_count"],
             "cards":              cards["card_items"],
@@ -161,7 +160,6 @@ class YoutubeScraper:
         """Extract playability status, age restriction, embeddability, miniplayer."""
         defaults = {
             "status":             "UNKNOWN",
-            "is_age_restricted":  False,
             "supports_miniplayer": False,
         }
         if not player_data:
@@ -169,7 +167,6 @@ class YoutubeScraper:
         try:
             playability        = player_data["playabilityStatus"]
             status             = playability.get("status", "UNKNOWN")
-            is_age_restricted  = status == "LOGIN_REQUIRED"
             supports_miniplayer = (
                 player_data
                 .get("microformat", {})
@@ -178,7 +175,6 @@ class YoutubeScraper:
             )
             return {
                 "status":              status,
-                "is_age_restricted":   is_age_restricted,
                 "supports_miniplayer": supports_miniplayer,
             }
         except (KeyError, TypeError):

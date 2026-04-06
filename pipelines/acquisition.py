@@ -35,6 +35,7 @@ class YoutubePipeline:
         self.base_csv = os.getenv("BASE_CSV", "./data/youtube/youtube.csv")
         self.output_csv = os.getenv("OUTPUT_CSV", "./data/youtube/youtube_enriched.csv")
         self.backup_dir = os.getenv("BACKUP_DIR", "./data/youtube/backup")
+        print(self.base_csv, self.output_csv, self.backup_dir)
 
         retry_strategy = Retry(
             total=3, 
@@ -80,7 +81,4 @@ class YoutubePipeline:
     
 
 pipeline = YoutubePipeline()
-df = pipeline.run()
-df.to_csv("example.csv")
-print(df.shape)
-print(df[:5])
+pipeline.run()

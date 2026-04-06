@@ -84,6 +84,17 @@ video_fields = (
     ")"
 )
 
+plain_video_fields = (
+    "items("
+    "id,"
+    "snippet(defaultLanguage),"
+    "statistics(favoriteCount),"
+    "status(embeddable,madeForKids),"
+    "contentDetails(duration,dimension,definition,caption,"
+    "licensedContent,contentRating,projection,regionRestriction)"
+    ")"
+)
+
 # Fields returned by the search endpoint (no statistics/contentDetails)
 search_fields = (
     "items("
@@ -152,19 +163,20 @@ class YoutubeAPI:
 
         backup = self.backup_dir + "/youtube_api_backup.json"
         if os.path.exists(backup):
+            self.logger.info("Loading video details from backup file")
             items = self.load_json(backup)
         else:
-            items = self.get_video_details_batched(all_ids)
+            self.logger.info("Fetching video details for %d IDs", len(all_ids))
+            items = self.get_video_details_batched(all_ids, full_details=False)
             self.save_json(items, backup)
 
         api_df = self.items_to_dataframe(items)
-
-        # Keep only the extra columns we fetched; merge on video_id
-        # api_df.columns = self._flatten_column_names(api_df.columns.tolist())
+        
         api_df.rename(columns=rename_cols, inplace=True)
+        
         merged = base_df.merge(api_df, on="video_id", how="left")
-        merged.drop(columns=["id"], errors="ignore", inplace=True)
         self.logger.info("Enriched base DataFrame shape: %s", merged.shape)
+        
         return merged
 
     def _fetch_trending(self) -> pd.DataFrame:
@@ -176,6 +188,7 @@ class YoutubeAPI:
             self.save_json(items, backup)
 
         df = self.items_to_dataframe(items)
+        self.logger.info("Adding trending metadata")
         df = self.add_pipeline_metadata(df, is_trending=True, today=self.today)
         df.rename(columns=rename_cols, inplace=True)
         self.logger.info("Trending DataFrame shape: %s", df.shape)
@@ -222,7 +235,7 @@ class YoutubeAPI:
         return df
 
 
-    def get_video_details(self, video_ids: list[str]) -> list[dict]:
+    def get_video_details(self, video_ids: list[str], full_details: bool = True) -> list[dict]:
         """Fetch full metadata for up to 50 video IDs in one call.
 
         Parameters
@@ -237,10 +250,11 @@ class YoutubeAPI:
         """
         if not video_ids:
             return []
+        self.logger.info("Fetching %d video details", len(video_ids))
         request = self._youtube.videos().list(
             part="statistics,contentDetails,snippet,status",
             id=",".join(video_ids),
-            fields=video_fields,
+            fields=video_fields if full_details else plain_video_fields,
         )
         response = self._execute(request)
         return response.get("items", [])
@@ -250,6 +264,7 @@ class YoutubeAPI:
         video_ids: list[str],
         batch_size: int = 50,
         delay: float = 0.05,
+        full_details: bool = True,
     ) -> list[dict]:
         """Fetch details for an arbitrary number of video IDs in batches.
 
@@ -270,7 +285,7 @@ class YoutubeAPI:
         results: list[dict] = []
         for i in tqdm(range(0, len(video_ids), batch_size), desc="Fetching video details"):
             batch = video_ids[i : i + batch_size]
-            items = self.get_video_details(batch)
+            items = self.get_video_details(batch, full_details=full_details)
             results.extend(items)
             if delay:
                 time.sleep(delay)
@@ -334,42 +349,6 @@ class YoutubeAPI:
         response = self._execute(request)
         return response.get("items", [])
 
-    def get_non_trending_videos(
-        self,
-        genres: list[str],
-        delay: float = 0.1,
-    ) -> list[str]:
-        """Collect video IDs for each genre via search.
-
-        Parameters
-        ----------
-        genres:
-            List of genre query strings.
-        delay:
-            Sleep between genre requests.
-
-        Returns
-        -------
-        list[str]
-            Deduplicated video IDs from the search results.
-        """
-        ids: list[str] = []
-        for genre in tqdm(genres, desc="Searching genres"):
-            items = self.get_videos_by_genre(genre)
-            for item in items:
-                vid_id = item.get("id", {}).get("videoId")
-                if vid_id:
-                    ids.append(vid_id)
-            if delay:
-                time.sleep(delay)
-        unique_ids = list(dict.fromkeys(ids))  # preserve order, deduplicate
-        self.logger.info(
-            "Found %d unique non-trending video IDs across %d genres",
-            len(unique_ids),
-            len(genres),
-        )
-        return unique_ids
-
     def _flatten_column_names(self, columns: list[str]) -> list[str]:
         """Collapse ``'section.field'`` → ``'field'`` for two-level dotted names."""
         return [
@@ -387,6 +366,7 @@ class YoutubeAPI:
             elif "thumbnails" in col:
                 new_cols.append(None)   # mark for removal
             elif col.count(".") == 1:
+                print(f"Warning: unexpected dotted column '{col}' – keeping full name")
                 new_cols.append(col.split(".")[1])
             else:
                 new_cols.append(col)
@@ -421,6 +401,7 @@ class YoutubeAPI:
         drop_cols = [col for col, drop in zip(df.columns, drop_mask) if drop]
         df.drop(columns=drop_cols, inplace=True)
         df.columns = [name for name in new_names if name is not None]
+        print("DataFrame columns after thumbnail extraction:", df.columns.tolist())
         return df
 
 
@@ -466,11 +447,16 @@ class YoutubeAPI:
         # 2. Trending
         trending_df = self._fetch_trending()
         trending_df = self.align_columns(trending_df, big_df)
+        with open("trending.json", "w") as f:
+            json.dump(trending_df.columns.tolist(), f, indent=4)
 
         # 3. Non-trending  (exclude IDs already in big_df + trending_df)
         known_ids = set(big_df["video_id"].dropna()) | set(trending_df["video_id"].dropna())
         non_trending_df = self._fetch_non_trending(exclude_ids=known_ids)
         non_trending_df = self.align_columns(non_trending_df, big_df)
+        with open("non_trending.json", "w") as f:
+            json.dump(non_trending_df.columns.tolist(), f, indent=4)
+
 
         # Sanity check – all DataFrames must have the same columns
         assert set(big_df.columns) == set(trending_df.columns) == set(non_trending_df.columns), (
