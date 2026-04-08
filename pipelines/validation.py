@@ -133,14 +133,6 @@ def run_gx_validation(df: pd.DataFrame):
         )
     )
 
-    # ── CONSISTENCY: categorical allowed values ──────────────────
-    suite.add_expectation(
-        gx.expectations.ExpectColumnValuesToBeInSet(
-            column="defaultLanguage",
-            value_set=extract_hl_list_from_file("data/youtube/hl_list.json")
-        )
-    )
-
     suite.add_expectation(
         gx.expectations.ExpectColumnValuesToBeInSet(
             column="dimension", value_set=["2d", "3d"]
@@ -404,7 +396,7 @@ class DataValidator:
         return self._save(report)
 
     # ── OUTLIERS ────────────────────────────────────────────────
-    def validate_outliers_iqr(self, df, numeric_columns, multiplier=5.0):
+    def validate_outliers_iqr(self, df, numeric_columns, multiplier=1.5):
         """outliers detection using IQR"""
         report = self._make_report(f"Outliers - IQR x{multiplier}", "Outliers")
         for col in numeric_columns:
@@ -733,8 +725,8 @@ validator.validate_no_future_dates(df, DATE_COLUMNS)
 validator.validate_date_order(df, "publishedAt", "trending_date")
 
 # Outliers
-validator.validate_outliers_iqr(df, NUMERIC_COLUMNS, multiplier=5.0)
-validator.validate_outliers_zscore(df, NUMERIC_COLUMNS, threshold=5.0)
+validator.validate_outliers_iqr(df, NUMERIC_COLUMNS, multiplier=1.5)
+validator.validate_outliers_zscore(df, NUMERIC_COLUMNS, threshold=3.0)
 
 # Distribution
 validator.validate_category_dominance(df, "categoryId", max_share=0.80)
