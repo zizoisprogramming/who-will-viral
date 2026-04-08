@@ -17,9 +17,9 @@ jobs:
           python-version: '3.11'
           cache: 'pip'
       - run: pip install ruff mypy bandit
-      - run: ruff check src/
-      - run: mypy src/ --ignore-missing-imports
-      - run: bandit -r src/ -ll
+      - run: ruff check src/who_will_viral/
+      - run: mypy src/who_will_viral/ --ignore-missing-imports
+      - run: bandit -r src/who_will_viral/ -ll
 
   acquire:
     needs: [code-quality]
@@ -45,7 +45,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: raw-data
-          path: data/raw/
+          path: data/youtube/youtube_enriched.csv
 
   validate:
     needs: [acquire]
@@ -66,7 +66,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: raw-data
-          path: data/raw/
+          path: data/youtube/
       - run: python src/who_will_viral/validate.py
       - uses: actions/upload-artifact@v4
         with:
