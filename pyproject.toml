@@ -1,18 +1,101 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
-name = "who-will-viral"
+name = "who_will_viral"
 version = "0.1.0"
-description = "Add your description here"
+description = "This project predicts if the youtube video is going to trend or not based on some features like description, number of likes, number of comments, etc.. ."
 readme = "README.md"
-requires-python = ">=3.14"
-dependencies = [
-    "bs4>=0.0.2",
-    "dotenv>=0.9.9",
-    "google-api-python-client>=2.193.0",
-    "great-expectations>=1.15.2",
-    "ipykernel>=7.2.0",
-    "numpy>=2.4.4",
-    "pandas>=3.0.2",
-    "requests>=2.33.1",
-    "seaborn>=0.13.2",
-    "tqdm>=4.67.3",
+authors = [
+  {name = "team_15", email = "audreyfeldroy@example.com"}
 ]
+maintainers = [
+  {name = "team_15", email = "audreyfeldroy@example.com"}
+]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Typing :: Typed",
+]
+license = {text = "MIT"}
+dependencies = [
+  "typer",
+  "rich",
+]
+requires-python = ">= 3.12"
+
+[dependency-groups]
+dev = [
+    { include-group = "lint" },
+    { include-group = "test" },
+    { include-group = "typecheck" },
+]
+lint = [
+    "ruff",
+]
+test = [
+    "coverage",
+    "pytest",
+]
+typecheck = [
+    "ty",
+]
+docs = [
+    "zensical",
+    "mkdocstrings-python",
+]
+
+[project.urls]
+bugs = "https://github.com/zizoisprogramming/who_will_viral/issues"
+changelog = "https://github.com/zizoisprogramming/who_will_viral/releases"
+documentation = "https://zizoisprogramming.github.io/who_will_viral/"
+homepage = "https://github.com/zizoisprogramming/who_will_viral"
+
+[project.scripts]
+who_will_viral = "who_will_viral.cli:app"
+
+[tool.ty]
+# All rules are enabled as "error" by default; no need to specify unless overriding.
+# Example override: relax a rule for the entire project (uncomment if needed).
+# rules.TY015 = "warn"  # For invalid-argument-type, warn instead of error.
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+]
+
+[tool.coverage.run]
+branch = true
+parallel = true
+source = ["src/", "tests/"]
+
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+fail_under = 50
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "if typing.TYPE_CHECKING:",
+    "@overload",
+    "@typing.overload",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+    "raise NotImplementedError",
+    "\\.\\.\\.",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.uv]
+package = true
+default-groups = ["dev"]
