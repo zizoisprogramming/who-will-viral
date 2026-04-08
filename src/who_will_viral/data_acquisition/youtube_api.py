@@ -206,7 +206,7 @@ class YoutubeAPI:
             search_items = self.load_json(search_backup)
         else:
             search_items = []
-            for genre in tqdm(GENRES, desc="Searching genres"):
+            for genre in GENRES:
                 items = self.get_videos_by_genre(genre)
                 search_items.extend(items)
                 time.sleep(0.1)
@@ -283,7 +283,7 @@ class YoutubeAPI:
             Flattened list of all API ``items``.
         """
         results: list[dict] = []
-        for i in tqdm(range(0, len(video_ids), batch_size), desc="Fetching video details"):
+        for i in range(0, len(video_ids), batch_size):
             batch = video_ids[i : i + batch_size]
             items = self.get_video_details(batch, full_details=full_details)
             results.extend(items)
