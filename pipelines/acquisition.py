@@ -68,11 +68,15 @@ class YoutubePipeline:
         final_df.to_csv("api.csv", index=False)
 
         # 3. Scrape videos
-        video_ids = final_df['video_id'].tolist()   
+        video_ids = final_df['video_id'].unique().tolist()   
         scrapped_df = self.youtube_scraper.scrape_videos(video_ids)
 
         # 4. Merge all data
         final_df = final_df.merge(scrapped_df, on='video_id', how='left')
+
+        final_df["comments_disabled"] = final_df["comments_disabled_y"].combine_first(final_df["comments_disabled_x"])
+        final_df = final_df.drop(columns=["comments_disabled_x", "comments_disabled_y"])
+
         self.logger.info("Merged scraped data. Final shape: %s", final_df.shape)
 
         # 5. Write to CSV
