@@ -43,7 +43,7 @@ jobs:
         run: mkdir -p data/youtube data/raw
       - name: Download base CSV from Google Drive
         run: gdown ${{ secrets.DRIVE_FILE_ID }} -O data/youtube/youtube.csv
-      - run: python src/who_will_viral/acquisition.py
+      - run: python src/who_will_viral/acquire.py
       - uses: actions/upload-artifact@v4
         with:
           name: raw-data
