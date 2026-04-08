@@ -2,6 +2,30 @@ from scipy import stats
 import pandas as pd
 import numpy as np
 import json
+import logging
+from datetime import datetime
+from dataclasses import dataclass, field
+from typing import Callable
+
+# ─────────────────────────────────────────────
+# Logging Setup
+# ─────────────────────────────────────────────
+
+import os
+
+os.makedirs("logs", exist_ok=True)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S",
+    handlers=[
+        logging.FileHandler("logs/cleaning.log"),   
+        logging.StreamHandler()                     
+    ]
+)
+
+logger = logging.getLogger(__name__)
 
 # ─────────────────────────────────────────────
 # Constants
@@ -24,6 +48,85 @@ INT_COLUMNS  = ["view_count", "likes", "categoryId", "comment_count", "card_coun
 BOOL_COLUMNS = ["embeddable", "madeForKids", "supports_miniplayer", "is_verified", "has_paid_promotion", "comments_disabled"]
 LOG_COLUMNS  = ["view_count", "likes", "comment_count"]
 CAP_COLUMNS  = ["view_count", "likes", "comment_count"]
+
+# ─────────────────────────────────────────────
+# Decision Log
+# ─────────────────────────────────────────────
+
+@dataclass
+class DecisionEntry:
+    step: str
+    rule: str
+    records_affected: int
+    action: str
+    rationale: str
+
+@dataclass
+class DecisionLog:
+    entries: list = field(default_factory=list)
+    initial_shape: tuple = None
+    final_shape: tuple = None
+
+    def record(self, step, rule, records_affected, action, rationale):
+        """Record a cleaning decision."""
+        entry = DecisionEntry(step, rule, records_affected, action, rationale)
+        self.entries.append(entry)
+        logger.info(f"[{step}] {rule} -> {records_affected} rows | {action}")
+
+    def summary(self):
+        """Print a formatted decision log table."""
+        total = sum(e.records_affected for e in self.entries)
+        pct   = (total / self.initial_shape[0] * 100) if self.initial_shape else 0
+
+        print("\n" + "═" * 80)
+        print("  CLEANING DECISION LOG")
+        print(f"  {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print("═" * 80)
+        print(f"  {'Step':<20} {'Rule':<35} {'Affected':>9}  {'Action':<25} {'Rationale'}")
+        print("─" * 80)
+        for e in self.entries:
+            print(f"  {e.step:<20} {e.rule:<35} {e.records_affected:>9,}  {e.action:<25} {e.rationale}")
+        print("─" * 80)
+        if self.initial_shape and self.final_shape:
+            print(f"\n  Raw shape:     {self.initial_shape[0]:,} rows × {self.initial_shape[1]} cols")
+            print(f"  Cleaned shape: {self.final_shape[0]:,} rows × {self.final_shape[1]} cols")
+        print("═" * 80 + "\n")
+
+# ─────────────────────────────────────────────
+# Reusable Pipeline
+# ─────────────────────────────────────────────
+
+class CleaningPipeline:
+    """
+    A reusable, modular data cleaning pipeline.
+    Add steps with .add_step() and run with .fit_transform().
+    Every step is logged automatically.
+    """
+
+    def __init__(self):
+        self.steps: list[tuple[str, Callable, dict]] = []
+        self.log = DecisionLog()
+
+    def add_step(self, name: str, func: Callable, **kwargs):
+        """Register a cleaning step. Returns self for chaining."""
+        self.steps.append((name, func, kwargs))
+        return self
+
+    def fit_transform(self, df: pd.DataFrame) -> pd.DataFrame:
+        """Run all registered steps on df and return cleaned result."""
+        self.log.initial_shape = df.shape
+        result = df.copy()
+
+        for name, func, kwargs in self.steps:
+            before = len(result)
+            logger.info(f"Running step: {name}")
+            result = func(result, log=self.log, **kwargs)
+            after  = len(result)
+            if before != after:
+                logger.info(f"  |-> Rows: {before:,} -> {after:,} (removed {before - after:,})")
+
+        self.log.final_shape = result.shape
+        return result
 
 # ─────────────────────────────────────────────
 # Helpers
@@ -51,67 +154,126 @@ def process_tags(x):
     return []
 
 # ─────────────────────────────────────────────
-# Cleaning Steps
+# Cleaning Steps  (all accept log= kwarg)
 # ─────────────────────────────────────────────
 
-def remove_duplicates(df):
+def remove_duplicates(df, log: DecisionLog = None):
     """Remove duplicate rows and duplicate video IDs."""
-    return df.drop_duplicates().drop_duplicates(subset=["video_id"])
+    before = len(df)
+    df = df.drop_duplicates().drop_duplicates(subset=["video_id"])
+    affected = before - len(df)
+    if log:
+        log.record("Accuracy", "Duplicate rows / video_id", affected, "Drop", "Exact duplicates or repeated video IDs")
+    return df
 
 
-def filter_invalid_rows(df):
+def filter_invalid_rows(df, log: DecisionLog = None):
     """Remove rows with logically inconsistent values."""
-    comment_count = pd.to_numeric(df["comment_count"], errors="coerce")
+    before = len(df)
 
+    likes         = pd.to_numeric(df["likes"], errors="coerce").fillna(0)
+    view_count    = pd.to_numeric(df["view_count"], errors="coerce").fillna(0)
+    comment_count = pd.to_numeric(df["comment_count"], errors="coerce")
     comments_disabled = df["comments_disabled"].apply(lambda x: str(x).lower() == "true")
 
-    df = df[df["likes"] <= df["view_count"]]
+    likes_mask = likes <= view_count
+    df = df[likes_mask]
+
+    # Re-compute after likes filter
+    comment_count = pd.to_numeric(df["comment_count"], errors="coerce")
+    comments_disabled = df["comments_disabled"].apply(lambda x: str(x).lower() == "true")
 
     valid_comments = (
         comment_count.isna() |
         ((comment_count >= 0) & ~comments_disabled) |
         ((comment_count == 0) &  comments_disabled)
     )
-    return df[valid_comments]
+    df = df[valid_comments]
 
-
-def fix_comment_count(df):
-    """Fill missing comment_count with 0 where comments are disabled."""
-    mask = df["comment_count"].isna() & (df["comments_disabled"].apply(lambda x: str(x).lower()) == "true")
-    df.loc[mask, "comment_count"] = 0
+    affected = before - len(df)
+    if log:
+        log.record("Consistency", "likes > view_count / invalid comment state", affected, "Reject -> drop", "Business rule violation")
     return df
 
 
-def cast_types(df):
+def drop_columns(df, log: DecisionLog = None, columns=None):
+    """Drop irrelevant columns."""
+    cols = [c for c in (columns or COLUMNS_TO_DROP) if c in df.columns]
+    df = df.drop(columns=cols)
+    if log:
+        log.record("Relevance", f"Drop {len(cols)} unused columns", 0, f"Dropped: {len(cols)} cols", "Not needed for analysis")
+    return df
+
+
+def normalize_tags(df, log: DecisionLog = None):
+    """Normalize tags column to lists."""
+    df["tags"] = df["tags"].apply(process_tags)
+    if log:
+        log.record("Consistency", "tags -> list normalization", len(df["tags"]), "Coerce to list", "Standardize tag format")
+    return df
+
+
+def fix_description(df, log: DecisionLog = None):
+    """Fill null descriptions with empty string."""
+    affected = df["description"].isna().sum()
+    df["description"] = df["description"].fillna("").astype(str)
+    if log:
+        log.record("Completeness", "description is null", int(affected), "Fill -> empty string", "Null description treated as no description")
+    return df
+
+
+def fix_comment_count(df, log: DecisionLog = None):
+    """Fill missing comment_count with 0 where comments are disabled."""
+    mask = df["comment_count"].isna() & (df["comments_disabled"].apply(lambda x: str(x).lower()) == "true")
+    affected = int(mask.sum())
+    df.loc[mask, "comment_count"] = 0
+    if log:
+        log.record("Completeness", "comment_count null + disabled", affected, "Fill -> 0", "Disabled comments implies 0 count")
+    return df
+
+
+def drop_nulls(df, log: DecisionLog = None):
+    """Drop remaining rows with any null values."""
+    before = len(df)
+    df = df.dropna()
+    affected = before - len(df)
+    if log:
+        log.record("Completeness", "Remaining null values", affected, "Drop rows", "Cannot impute remaining nulls")
+    return df
+
+
+def cast_types(df, log: DecisionLog = None):
     """Cast columns to their correct data types."""
     for col in INT_COLUMNS:
         if col in df.columns:
             df[col] = pd.to_numeric(df[col], errors="coerce").astype("Int64")
-
     for col in BOOL_COLUMNS:
         if col in df.columns:
             df[col] = df[col].apply(lambda x: str(x).lower() == "true")
-
+    if log:
+        log.record("Type Casting", "Int + Bool columns", 0, "Cast dtypes", "Ensure correct types for analysis")
     return df
 
 
-def clean_default_language(df, hl_file_path="data/youtube/hl_list.json"):
+def clean_default_language(df, log: DecisionLog = None, hl_file_path="data/youtube/hl_list.json"):
     """Replace invalid defaultLanguage values with 'unknown'."""
     if "defaultLanguage" not in df.columns:
         return df
-
     hl_set = extract_hl_list_from_file(hl_file_path) | YOUTUBE_EXTRA_LANGS
     series = df["defaultLanguage"].dropna()
     invalid_mask = ~series.str.split("-").str[0].str.lower().isin(hl_set)
+    affected = int(invalid_mask.sum())
     df.loc[invalid_mask.index[invalid_mask], "defaultLanguage"] = "unknown"
+    if log:
+        log.record("Consistency", "defaultLanguage invalid code", affected, "Replace -> 'unknown'", "Not in YouTube i18n list")
     return df
 
 
-def apply_log_transformation(df, columns, base="natural"):
-    """Apply log(x+1) transformation to handle zeros. Clips negatives to 0 first."""
+def apply_log_transformation(df, log: DecisionLog = None, columns=None, base="natural"):
+    """Apply log(x+1) transformation. Clips negatives to 0 first."""
+    columns = columns or LOG_COLUMNS
     for col in columns:
         if col not in df.columns:
-            print(f"Column '{col}' not found, skipping.")
             continue
         df[col] = df[col].clip(lower=0)
         if base == "natural":
@@ -120,27 +282,18 @@ def apply_log_transformation(df, columns, base="natural"):
             df[col] = np.log2(df[col] + 1)
         elif base == "log10":
             df[col] = np.log10(df[col] + 1)
+    if log:
+        log.record("Transformation", f"log({base}) on {columns}", len(df), f"log1p transform", "Reduce skewness")
     return df
 
 
-def apply_sqrt_transformation(df, columns):
-    """Apply sqrt transformation. Clips negatives to 0 first."""
+def cap_outliers(df, log: DecisionLog = None, columns=None, method="iqr", iqr_multiplier=1.5, z_threshold=3):
+    """Cap outliers using IQR or Z-score."""
+    columns = columns or CAP_COLUMNS
+    total_capped = 0
     for col in columns:
         if col not in df.columns:
-            print(f"Column '{col}' not found, skipping.")
             continue
-        df[col] = df[col].clip(lower=0)
-        df[col] = np.sqrt(df[col])
-    return df
-
-
-def cap_outliers(df, columns, method="iqr", iqr_multiplier=1.5, z_threshold=3):
-    """Cap outliers using IQR or Z-score method."""
-    for col in columns:
-        if col not in df.columns:
-            print(f"Column '{col}' not found, skipping.")
-            continue
-
         if method == "iqr":
             Q1, Q3 = df[col].quantile(0.25), df[col].quantile(0.75)
             IQR = Q3 - Q1
@@ -151,32 +304,35 @@ def cap_outliers(df, columns, method="iqr", iqr_multiplier=1.5, z_threshold=3):
             lower_cap = mean - z_threshold * std
             upper_cap = mean + z_threshold * std
         else:
-            print(f"Unknown method '{method}', use 'iqr' or 'zscore'.")
             continue
-
+        n_capped = int(((df[col] < lower_cap) | (df[col] > upper_cap)).sum())
+        total_capped += n_capped
         df[col] = df[col].clip(lower=lower_cap, upper=upper_cap)
-        print(f"── {col} capped at [{lower_cap:.2f}, {upper_cap:.2f}] using {method}")
-
+    if log:
+        log.record("Outliers", f"Cap via {method} on {len(columns)} cols", total_capped, f"Clip to bounds", f"Outlier treatment using {method}")
     return df
 
 # ─────────────────────────────────────────────
-# Main Pipeline
+# Build Pipeline
 # ─────────────────────────────────────────────
 
-def cleaning(df):
-    df = remove_duplicates(df)
-    df = filter_invalid_rows(df)
-    df = df.drop(columns=[c for c in COLUMNS_TO_DROP if c in df.columns])
-    df["tags"] = df["tags"].apply(process_tags)
-    df["description"] = df["description"].fillna("").astype(str)
-    df = fix_comment_count(df)
-    df = df.dropna()
-    df = cast_types(df)
-    df = clean_default_language(df)
-    df = apply_log_transformation(df, columns=LOG_COLUMNS, base="natural")
-    df = cap_outliers(df, columns=CAP_COLUMNS, method="zscore")
-    return df
-
+def build_youtube_pipeline(hl_file_path="data/youtube/hl_list.json") -> CleaningPipeline:
+    """Build and return the YouTube cleaning pipeline."""
+    pipeline = CleaningPipeline()
+    (pipeline
+        .add_step("Remove Duplicates",       remove_duplicates)
+        .add_step("Filter Invalid Rows",     filter_invalid_rows)
+        .add_step("Drop Columns",            drop_columns,            columns=COLUMNS_TO_DROP)
+        .add_step("Normalize Tags",          normalize_tags)
+        .add_step("Fix Description",         fix_description)
+        .add_step("Fix Comment Count",       fix_comment_count)
+        .add_step("Drop Nulls",              drop_nulls)
+        .add_step("Cast Types",              cast_types)
+        .add_step("Clean Language",          clean_default_language,  hl_file_path=hl_file_path)
+        .add_step("Log Transformation",      apply_log_transformation, columns=LOG_COLUMNS, base="natural")
+        .add_step("Cap Outliers",            cap_outliers,            columns=CAP_COLUMNS, method="zscore")
+    )
+    return pipeline
 
 # ─────────────────────────────────────────────
 # Entry Point
@@ -184,6 +340,10 @@ def cleaning(df):
 
 if __name__ == "__main__":
     df = pd.read_csv("data/youtube/dataset.csv")
-    cleaned_df = cleaning(df)
-    cleaned_df.to_csv("data/youtube/cleaned_dataset.csv", index=False)
-    print(f"Done. Shape: {cleaned_df.shape}")
+
+    pipeline = build_youtube_pipeline()
+    cleaned_df = pipeline.fit_transform(df)
+    pipeline.log.summary()
+
+    cleaned_df.to_csv("data/youtube/clean_dataset.csv", index=False)
+    print(f"Saved -> data/youtube/clean_dataset.csv")
