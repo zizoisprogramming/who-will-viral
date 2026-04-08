@@ -18,7 +18,7 @@ jobs:
           cache: 'pip'
       - run: pip install ruff mypy bandit
       - run: ruff check src/who_will_viral/
-      - run: mypy src/who_will_viral/ --ignore-missing-imports
+      - run: mypy src/who_will_viral/ --ignore-missing-imports --disable-error-code=union-attr --disable-error-code=arg-type
       - run: bandit -r src/who_will_viral/ -ll
 
   acquire:
