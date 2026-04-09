@@ -99,7 +99,7 @@ class FeatureExtraction:
     def _get_best_embeddings(self, df):
         if os.getenv("CI"):
             for col in EMBEDDINGS_COLS:
-                for i in range(384):  
+                for i in range(384):
                     df[f"{col}_emb_{i}"] = 0.0
             return df
         for col in EMBEDDINGS_COLS:
