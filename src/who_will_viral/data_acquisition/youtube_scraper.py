@@ -1,21 +1,18 @@
-from urllib.robotparser import RobotFileParser
-from requests.adapters import HTTPAdapter
-from urllib.parse import urlparse
-from collections import deque
-from bs4 import BeautifulSoup
-from urllib3 import Retry
-from tqdm import tqdm
-import pandas as pd
-import threading        # ✅ FIX 3: thread-safe locking
-import requests
-import logging
 import json
-import time
 import os
 import re
+import threading  # ✅ FIX 3: thread-safe locking
+import time
+from collections import deque
 
 # ✅ FIX 1: concurrent.futures for parallel scraping
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from urllib.parse import urlparse
+from urllib.robotparser import RobotFileParser
+
+import pandas as pd
+from bs4 import BeautifulSoup
+from tqdm import tqdm
 
 
 class YoutubeScraper:
@@ -82,7 +79,7 @@ class YoutubeScraper:
 
             with tqdm(total=len(pending)) as pbar:
                 for future in as_completed(future_to_id):
-                    vid_id = future_to_id[future]
+                    _ = future_to_id[future]
                     result = future.result()   # always returns dict or None
                     pbar.update(1)
 
@@ -394,7 +391,7 @@ class YoutubeScraper:
         filepath = os.path.join(self.output_dir, filename)
         try:
             videos = []
-            with open(filepath, "r") as f:
+            with open(filepath) as f:
                 for line in f:
                     line = line.strip()
                     if line:

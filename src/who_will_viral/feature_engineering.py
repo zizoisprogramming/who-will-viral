@@ -1,12 +1,11 @@
+import os
+
 import pandas as pd
-from sklearn.model_selection import train_test_split
+from dotenv import load_dotenv
 
 from who_will_viral.feature_engineering.feature_extraction import FeatureExtraction
 from who_will_viral.feature_engineering.feature_scaling import FeatureScaling
 from who_will_viral.feature_engineering.feature_selection import FeatureSelection
-
-from dotenv import load_dotenv
-import os
 
 load_dotenv()
 

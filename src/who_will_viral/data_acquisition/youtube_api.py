@@ -22,14 +22,12 @@ import json
 import logging
 import os
 import time
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import numpy as np
 import pandas as pd
-from dotenv import load_dotenv
 from googleapiclient.discovery import build
-from tqdm import tqdm
 
 
 class RateLimiter:
@@ -154,7 +152,7 @@ class YoutubeAPI:
         """Execute a request, honouring the rate limiter."""
         self._rate.wait_if_needed()
         return request.execute()
-    
+
 
     def _enrich_base(self, base_df: pd.DataFrame) -> pd.DataFrame:
         """Fetch additional fields for every unique video in the base CSV."""
@@ -171,12 +169,12 @@ class YoutubeAPI:
             self.save_json(items, backup)
 
         api_df = self.items_to_dataframe(items)
-        
+
         api_df.rename(columns=rename_cols, inplace=True)
-        
+
         merged = base_df.merge(api_df, on="video_id", how="left")
         self.logger.info("Enriched base DataFrame shape: %s", merged.shape)
-        
+
         return merged
 
     def _fetch_trending(self) -> pd.DataFrame:
@@ -334,7 +332,7 @@ class YoutubeAPI:
         """
         if published_after is None:
             published_after = (
-                datetime.now(timezone.utc) - timedelta(days=1)
+                datetime.now(UTC) - timedelta(days=1)
             ).strftime("%Y-%m-%dT%H:%M:%SZ")
 
         request = self._youtube.search().list(
@@ -398,7 +396,7 @@ class YoutubeAPI:
         # Resolve column names
         new_names = self._extract_thumbnail_url(df.columns.tolist())
         drop_mask = [name is None for name in new_names]
-        drop_cols = [col for col, drop in zip(df.columns, drop_mask) if drop]
+        drop_cols = [col for col, drop in zip(df.columns, drop_mask, strict=True) if drop]
         df.drop(columns=drop_cols, inplace=True)
         df.columns = [name for name in new_names if name is not None]
         print("DataFrame columns after thumbnail extraction:", df.columns.tolist())
@@ -436,11 +434,11 @@ class YoutubeAPI:
 
 
     def load_json(self, path: str) -> Any:
-        with open(path, "r") as fh:
+        with open(path) as fh:
             data = json.load(fh)
         self.logger.info("Loaded JSON ← %s", path)
         return data
-    
+
     def run(self, base_df):
         big_df = self._enrich_base(base_df)
 

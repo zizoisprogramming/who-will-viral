@@ -1,6 +1,5 @@
 import ast
-import json
-import re
+import os
 from datetime import datetime
 from itertools import groupby
 
@@ -8,7 +7,6 @@ import great_expectations as gx
 import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
-import os
 
 load_dotenv()
 
@@ -78,7 +76,7 @@ def run_gx_validation(df: pd.DataFrame):
 
 
     # ── ACCURACY: numeric bounds ──────────────────────────
-    # removed "favoritecount" as it's deleted 
+    # removed "favoritecount" as it's deleted
     for col in ["view_count", "likes", "comment_count"]:
         suite.add_expectation(
             gx.expectations.ExpectColumnValuesToBeBetween(column=col, min_value=0)
@@ -222,7 +220,7 @@ class DataValidator:
     def _save(self, report):
         self.validation_results.append(report)
         return report
-    
+
 
     # ── CONSISTENCY (schema) ────────────────────────────────────
     def validate_schema(self, df, expected_columns, expected_types):
@@ -248,36 +246,36 @@ class DataValidator:
                     )
 
         return self._save(report)
-    
+
     def validate_default_language(self, df):
         """Default language values check against YouTube i18n language list"""
         report = self._make_report("Default Language", "Consistency")
-    
+
         if "defaultLanguage" not in df.columns:
             report["issues"].append("Column 'defaultLanguage' not found")
             report["passed"] = False
             return self._save(report)
-    
+
         hl_set = {
             code.split("-")[0].lower()
             for code in HL_LIST
         } | YOUTUBE_EXTRA_LANGS
-    
+
         series = df["defaultLanguage"].dropna()
-    
+
         # mask for invalid rows
         invalid_mask = ~series.str.split("-").str[0].str.lower().isin(hl_set)
-    
+
         invalid_rows = series[invalid_mask]
         invalid_count = invalid_mask.sum()
-    
+
         if invalid_count > 0:
             report["passed"] = False
             report["issues"].append(
                 f"Column 'defaultLanguage': {invalid_count} invalid row(s). "
                 f"Sample values: {invalid_rows.unique().tolist()[:5]}"
             )
-    
+
         return self._save(report)
 
     # ── COMPLETENESS ────────────────────────────────────────────
@@ -285,7 +283,7 @@ class DataValidator:
     def validate_no_blank_strings(self, df, text_columns):
         """Empty-string cells check"""
         report = self._make_report("Blank Strings", "Completeness")
-        
+
         for col in text_columns:
             if col not in df.columns:
                 continue
@@ -497,7 +495,7 @@ class DataValidator:
         return self._save(report)
 
 
-    # Relationships profile 
+    # Relationships profile
     def validate_correlation(self, df, numeric_columns, corr_threshold=0.7, method='pearson'):
         """validating numeric columns correlation"""
         report = self._make_report(f"Correlation ({method})", "Relationships")
@@ -521,8 +519,8 @@ class DataValidator:
         if not found_issue:
             report["info"].append(f"All correlations are below {corr_threshold}")
 
-        return self._save(report) 
-    
+        return self._save(report)
+
     def validate_skew(self, df, numeric_columns, skew_threshold=1):
         """validating numeric columns skewness"""
         report = self._make_report("Skewness", "Relationships")
@@ -695,7 +693,7 @@ YOUTUBE_EXTRA_LANGS = {
     "chr", "mni", "vro", "ase", "mo", "bi", "und", "zxx", "sdp" ,"unknown"
 }
 
-# allow reading empty strings 
+# allow reading empty strings
 df = pd.read_csv(os.getenv("CLEANED_PATH") ,keep_default_na=False)
 
 # 1. Quick snapshot
@@ -708,8 +706,8 @@ gx_results = run_gx_validation(df)
 validator = DataValidator()
 
 # Consistency
-validator.validate_schema(df, EXPECTED_COLUMNS, EXPECTED_TYPES)  
-validator.validate_default_language(df)       
+validator.validate_schema(df, EXPECTED_COLUMNS, EXPECTED_TYPES)
+validator.validate_default_language(df)
 
 # Completeness
 validator.validate_no_blank_strings(df, TEXT_COLUMNS)

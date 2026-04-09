@@ -1,15 +1,16 @@
-from sklearn.preprocessing import RobustScaler, StandardScaler
-import pandas as pd
 import os
+
+import pandas as pd
 from dotenv import load_dotenv
+from sklearn.preprocessing import RobustScaler
 
 load_dotenv()
 
 ALREADY_PROCESSED = [
     "lang_base",
     "lang_region",
-    "like_to_view_ratio",       
-    "comment_to_view_ratio",    
+    "like_to_view_ratio",
+    "comment_to_view_ratio",
     "has_cards",
 ]
 
@@ -29,9 +30,9 @@ class FeatureScaling:
         df_train = pd.read_csv(self.train_path)
         df_val = pd.read_csv(self.val_path)
         df_test = pd.read_csv(self.test_path)
-        
+
         COLS_TO_SCALE = [
-            c for c in df_train.columns 
+            c for c in df_train.columns
             if c not in ALREADY_PROCESSED + [col for col in df_train.columns if 'pca' in col]
             and c != "is_trending"
         ]

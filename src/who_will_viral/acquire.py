@@ -1,15 +1,15 @@
-from urllib.robotparser import RobotFileParser
-from requests.adapters import HTTPAdapter
-from dotenv import load_dotenv
-from urllib3 import Retry
-import pandas as pd
-import requests
 import logging
 import os
 
-from who_will_viral.data_acquisition.youtube_scraper import YoutubeScraper
+import pandas as pd
+import requests
+from dotenv import load_dotenv
+from requests.adapters import HTTPAdapter
+from urllib3 import Retry
+
+from who_will_viral.data_acquisition.youtube_api import YoutubeAPI
 from who_will_viral.data_acquisition.youtube_database import YoutubeDatabase
-from who_will_viral.data_acquisition.youtube_api import YoutubeAPI 
+from who_will_viral.data_acquisition.youtube_scraper import YoutubeScraper
 
 
 class YoutubePipeline:
@@ -38,9 +38,9 @@ class YoutubePipeline:
         print(self.base_csv, self.output_csv, self.backup_dir)
 
         retry_strategy = Retry(
-            total=3, 
+            total=3,
             backoff_factor=1,
-            status_forcelist=[429, 500, 502, 503, 504], 
+            status_forcelist=[429, 500, 502, 503, 504],
             allowed_methods=["HEAD", "GET", "OPTIONS", "POST"]
         )
         adapter = HTTPAdapter(max_retries=retry_strategy)
@@ -58,17 +58,17 @@ class YoutubePipeline:
     def run(self) -> pd.DataFrame:
         """Execute the full pipeline and return the final DataFrame."""
         os.makedirs(self.backup_dir, exist_ok=True)
-        os.makedirs("/".join(self.output_csv.split("/")[:-1]), exist_ok=True) 
+        os.makedirs("/".join(self.output_csv.split("/")[:-1]), exist_ok=True)
 
         # 1. Base dataset
         base_df = self.youtube_database.run()
 
         # 2. Enrich with YouTube API
-        final_df = self.youtube_api.run(base_df)  
+        final_df = self.youtube_api.run(base_df)
         final_df.to_csv("api.csv", index=False)
 
         # 3. Scrape videos
-        video_ids = final_df['video_id'].unique().tolist()   
+        video_ids = final_df['video_id'].unique().tolist()
         scrapped_df = self.youtube_scraper.scrape_videos(video_ids)
 
         # 4. Merge all data
@@ -83,7 +83,7 @@ class YoutubePipeline:
         final_df.to_csv(self.output_csv, index=False)
 
         return final_df
-    
+
 
 pipeline = YoutubePipeline()
 pipeline.run()

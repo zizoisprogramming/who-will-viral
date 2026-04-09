@@ -1,12 +1,12 @@
-from scipy import stats
-import pandas as pd
-import numpy as np
 import json
 import logging
-from datetime import datetime
-from dataclasses import dataclass, field
-from typing import Callable
 import os
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from datetime import datetime
+
+import numpy as np
+import pandas as pd
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -18,8 +18,8 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     datefmt="%H:%M:%S",
     handlers=[
-        logging.FileHandler("logs/cleaning.log"),   
-        logging.StreamHandler()                     
+        logging.FileHandler("logs/cleaning.log"),
+        logging.StreamHandler()
     ]
 )
 
@@ -40,7 +40,8 @@ COLUMNS_TO_DROP = [
 ]
 
 INT_COLUMNS  = ["view_count", "likes", "categoryId", "comment_count", "card_count", "is_trending", "chapter_count"]
-BOOL_COLUMNS = ["embeddable", "madeForKids", "supports_miniplayer", "is_verified", "has_paid_promotion", "comments_disabled"]
+BOOL_COLUMNS = ["embeddable", "madeForKids", "supports_miniplayer",
+                "is_verified", "has_paid_promotion", "comments_disabled"]
 LOG_COLUMNS  = ["view_count", "likes", "comment_count"]
 CAP_COLUMNS  = ["view_count", "likes", "comment_count","chapter_count"]
 
@@ -68,7 +69,7 @@ class DecisionLog:
     def summary(self):
         """Print a formatted decision log table."""
         total = sum(e.records_affected for e in self.entries)
-        pct   = (total / self.initial_shape[0] * 100) if self.initial_shape else 0
+        _   = (total / self.initial_shape[0] * 100) if self.initial_shape else 0
 
         print("\n" + "═" * 80)
         print("  CLEANING DECISION LOG")
@@ -119,7 +120,7 @@ class CleaningPipeline:
 
 def extract_hl_list_from_file(file_path):
     """Load valid language codes from a YouTube hl_list JSON file."""
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         json_data = json.load(f)
     return {
         item["snippet"]["hl"].split("-")[0].lower()
@@ -174,7 +175,8 @@ def filter_invalid_rows(df, log: DecisionLog = None):
 
     affected = before - len(df)
     if log:
-        log.record("Consistency", "likes > view_count / invalid comment state", affected, "Reject -> drop", "Business rule violation")
+        log.record("Consistency", "likes > view_count / invalid comment state",
+            affected, "Reject -> drop", "Business rule violation")
     return df
 
 
@@ -183,7 +185,8 @@ def drop_columns(df, log: DecisionLog = None, columns=None):
     cols = [c for c in (columns or COLUMNS_TO_DROP) if c in df.columns]
     df = df.drop(columns=cols)
     if log:
-        log.record("Relevance", f"Drop {len(cols)} unused columns", 0, f"Dropped: {len(cols)} cols", "Not needed for analysis")
+        log.record("Relevance", f"Drop {len(cols)} unused columns", 0,
+            f"Dropped: {len(cols)} cols", "Not needed for analysis")
     return df
 
 
@@ -191,7 +194,8 @@ def normalize_tags(df, log: DecisionLog = None):
     """Normalize tags column to lists."""
     df["tags"] = df["tags"].apply(process_tags)
     if log:
-        log.record("Consistency", "tags -> list normalization", len(df["tags"]), "Coerce to list", "Standardize tag format")
+        log.record("Consistency", "tags -> list normalization",
+            len(df["tags"]), "Coerce to list", "Standardize tag format")
     return df
 
 
@@ -200,7 +204,8 @@ def fix_description(df, log: DecisionLog = None):
     affected = df["description"].isna().sum()
     df["description"] = df["description"].fillna("").astype(str)
     if log:
-        log.record("Completeness", "description is null", int(affected), "Fill -> empty string", "Null description treated as no description")
+        log.record("Completeness", "description is null",
+            int(affected), "Fill -> empty string", "Null description treated as no description")
     return df
 
 
@@ -210,7 +215,8 @@ def fix_comment_count(df, log: DecisionLog = None):
     affected = int(mask.sum())
     df.loc[mask, "comment_count"] = 0
     if log:
-        log.record("Completeness", "comment_count null + disabled", affected, "Fill -> 0", "Disabled comments implies 0 count")
+        log.record("Completeness", "comment_count null + disabled",
+                   affected, "Fill -> 0", "Disabled comments implies 0 count")
     return df
 
 
@@ -247,7 +253,8 @@ def clean_default_language(df, log: DecisionLog = None, hl_file_path="data/youtu
     affected = int(invalid_mask.sum())
     df.loc[invalid_mask.index[invalid_mask], "defaultLanguage"] = "unknown"
     if log:
-        log.record("Consistency", "defaultLanguage invalid code", affected, "Replace -> 'unknown'", "Not in YouTube i18n list")
+        log.record("Consistency", "defaultLanguage invalid code",
+            affected, "Replace -> 'unknown'", "Not in YouTube i18n list")
     return df
 
 
@@ -265,11 +272,12 @@ def apply_log_transformation(df, log: DecisionLog = None, columns=None, base="na
         elif base == "log10":
             df[col] = np.log10(df[col] + 1)
     if log:
-        log.record("Transformation", f"log({base}) on {columns}", len(df), f"log1p transform", "Reduce skewness")
+        log.record("Transformation", f"log({base}) on {columns}", len(df), "log1p transform", "Reduce skewness")
     return df
 
 
-def cap_outliers(df, log: DecisionLog = None, columns=None, method="iqr", iqr_multiplier=1.5, z_threshold=3,upper_bound=20):
+def cap_outliers(df, log: DecisionLog = None, columns=None,
+                method="iqr", iqr_multiplier=1.5, z_threshold=3,upper_bound=20):
     """Cap outliers using IQR or Z-score."""
     columns = columns or CAP_COLUMNS
     total_capped = 0
@@ -294,7 +302,8 @@ def cap_outliers(df, log: DecisionLog = None, columns=None, method="iqr", iqr_mu
         total_capped += n_capped
         df[col] = df[col].clip(lower=lower_cap, upper=upper_cap)
     if log:
-        log.record("Outliers", f"Cap via {method} on {len(columns)} cols", total_capped, f"Clip to bounds", f"Outlier treatment using {method}")
+        log.record("Outliers", f"Cap via {method} on {len(columns)} cols",
+            total_capped, "Clip to bounds", f"Outlier treatment using {method}")
     return df
 
 def build_youtube_pipeline(hl_file_path="data/youtube/hl_list.json") -> CleaningPipeline:
@@ -324,4 +333,4 @@ if __name__ == "__main__":
     pipeline.log.summary()
 
     cleaned_df.to_csv(os.getenv("CLEANED_PATH"), index=False)
-    print(f"Saved -> data/youtube/clean_dataset.csv")
+    print("Saved -> data/youtube/clean_dataset.csv")
