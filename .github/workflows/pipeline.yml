@@ -21,7 +21,7 @@ jobs:
       - run: mypy src/who_will_viral/ --ignore-missing-imports --disable-error-code=union-attr --disable-error-code=arg-type --disable-error-code=import-untyped
       - run: bandit -r src/who_will_viral/ -ll
 
-  acquire:
+  validate:
     needs: [code-quality]
     runs-on: ubuntu-latest
     steps:
@@ -32,52 +32,36 @@ jobs:
           cache: 'pip'
       - run: pip install -r requirements.txt
       - run: pip install -e .
-      - run: pip install gdown
-      - run: pip install dotenv
+      - run: pip install gdown dotenv
       - name: Create .env file
         run: |
           echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
           echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
-          echo "OUTPUT_CSV=${{ secrets.OUTPUT_CSV }}"           >> .env
-          echo "BACKUP_DIR=${{ secrets.BACKUP_DIR }}"           >> .env
+          echo "OUTPUT_CSV=./data/youtube/youtube_enriched.csv" >> .env
+          echo "BACKUP_DIR=./data/youtube/backup"               >> .env
+          echo "HF_TOKEN=${{ secrets.HF_TOKEN }}"               >> .env
+          echo "CLEANED_PATH=./data/youtube/cleaned_dataset.csv" >> .env
+          echo "MERGED_PATH=./data/youtube/dataset.csv"         >> .env
+          echo "EXTRACTED_PATH=./data/youtube/extracted.csv"    >> .env
+          echo "TRAIN_PATH=./data/youtube/train.csv"            >> .env
+          echo "VAL_PATH=./data/youtube/val.csv"                >> .env
+          echo "TEST_PATH=./data/youtube/test.csv"              >> .env
+          echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv" >> .env
+          echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"  >> .env
+          echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv" >> .env
       - name: Create data directories
         run: mkdir -p data/youtube data/raw
       - name: Download base CSV from Google Drive
-        run: gdown ${{ secrets.DRIVE_FILE_ID }} -O data/youtube/youtube.csv
-      - run: env PYTHONPATH=src python src/who_will_viral/acquire.py 
-      - run: python src/who_will_viral/acquire.py
-      - uses: actions/upload-artifact@v4
-        with:
-          name: raw-data
-          path: data/youtube/youtube_enriched.csv
-
-  validate:
-    needs: [acquire]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: 'pip'
-      - run: pip install -e .
-      - name: Create .env file
-        run: |
-          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
-          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
-          echo "OUTPUT_CSV=${{ secrets.OUTPUT_CSV }}"           >> .env
-          echo "BACKUP_DIR=${{ secrets.BACKUP_DIR }}"           >> .env
-      - uses: actions/download-artifact@v4
-        with:
-          name: raw-data
-          path: data/youtube/
+        run: gdown ${{ secrets.MERGED_PATH_DRIVE }} -O data/youtube/youtube.rar
+      - run: sudo apt-get install -y unrar
+      - run: unrar x data/youtube/youtube.rar data/youtube/
       - run: python src/who_will_viral/validate.py
       - uses: actions/upload-artifact@v4
         with:
-          name: validated-data
-          path: data/validated/
+          name: raw-data
+          path: ./data/youtube/dataset.csv
 
-  test:
+  clean:
     needs: [validate]
     runs-on: ubuntu-latest
     steps:
@@ -86,94 +70,109 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
-      - run: pip install -r requirements.txt pytest pytest-cov
+      - run: pip install -r requirements.txt
+      - run: pip install -e .
+      - run: pip install dotenv
       - name: Create .env file
         run: |
           echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
           echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
-          echo "OUTPUT_CSV=${{ secrets.OUTPUT_CSV }}"           >> .env
-          echo "BACKUP_DIR=${{ secrets.BACKUP_DIR }}"           >> .env
+          echo "OUTPUT_CSV=./data/youtube/youtube_enriched.csv" >> .env
+          echo "BACKUP_DIR=./data/youtube/backup"               >> .env
+          echo "HF_TOKEN=${{ secrets.HF_TOKEN }}"               >> .env
+          echo "CLEANED_PATH=./data/youtube/cleaned_dataset.csv" >> .env
+          echo "MERGED_PATH=./data/youtube/dataset.csv"         >> .env
+          echo "EXTRACTED_PATH=./data/youtube/extracted.csv"    >> .env
+          echo "TRAIN_PATH=./data/youtube/train.csv"            >> .env
+          echo "VAL_PATH=./data/youtube/val.csv"                >> .env
+          echo "TEST_PATH=./data/youtube/test.csv"              >> .env
+          echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv" >> .env
+          echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"  >> .env
+          echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv" >> .env
+      - name: Create data directories
+        run: mkdir -p data/youtube
       - uses: actions/download-artifact@v4
         with:
-          name: validated-data
-          path: data/validated/
-      - run: pytest tests/ --cov=src --cov-report=xml
+          name: raw-data
+          path: ./data/youtube/
+      - run: python src/who_will_viral/clean.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: cleaned-data
+          path: ./data/youtube/cleaned_dataset.csv
 
+  validate-clean:
+    needs: [clean]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - run: pip install -e .
+      - run: pip install dotenv
+      - name: Create .env file
+        run: |
+          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
+          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
+          echo "OUTPUT_CSV=./data/youtube/youtube_enriched.csv" >> .env
+          echo "BACKUP_DIR=./data/youtube/backup"               >> .env
+          echo "HF_TOKEN=${{ secrets.HF_TOKEN }}"               >> .env
+          echo "CLEANED_PATH=./data/youtube/cleaned_dataset.csv" >> .env
+          echo "MERGED_PATH=./data/youtube/dataset.csv"         >> .env
+          echo "EXTRACTED_PATH=./data/youtube/extracted.csv"    >> .env
+          echo "TRAIN_PATH=./data/youtube/train.csv"            >> .env
+          echo "VAL_PATH=./data/youtube/val.csv"                >> .env
+          echo "TEST_PATH=./data/youtube/test.csv"              >> .env
+          echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv" >> .env
+          echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"  >> .env
+          echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv" >> .env
+      - name: Create data directories
+        run: mkdir -p data/youtube
+      - uses: actions/download-artifact@v4
+        with:
+          name: cleaned-data
+          path: ./data/youtube/
+      - run: python src/who_will_viral/validation_cleaned.py
 
-#  clean:
-#    needs: [validate]
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#      - uses: actions/setup-python@v5
-#        with:
-#          python-version: '3.12'
-#          cache: 'pip'
-#      - run: pip install -r requirements.txt
-#      - name: Create .env file
-#        run: |
-#          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
-#          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
-#          echo "OUTPUT_CSV=${{ secrets.OUTPUT_CSV }}"           >> .env
-#          echo "BACKUP_DIR=${{ secrets.BACKUP_DIR }}"           >> .env
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: validated-data
-#          path: data/validated/
-#      - run: python src/who_will_viral/clean.py
-#      - uses: actions/upload-artifact@v4
-#        with:
-#          name: cleaned-data
-#          path: data/cleaned/
-
-#  feature-engineering:
-#    needs: [clean]
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#      - uses: actions/setup-python@v5
-#        with:
-#          python-version: '3.12'
-#          cache: 'pip'
-#      - run: pip install -r requirements.txt
-#      - name: Create .env file
-#        run: |
-#          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
-#          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
-#          echo "OUTPUT_CSV=${{ secrets.OUTPUT_CSV }}"           >> .env
-#          echo "BACKUP_DIR=${{ secrets.BACKUP_DIR }}"           >> .env
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: cleaned-data
-#          path: data/cleaned/
-#      - run: python src/who_will_viral/features.py
-#      - uses: actions/upload-artifact@v4
-#        with:
-#          name: features-data
-#          path: data/features/
-
-#  train:
-#    needs: [feature-engineering]
-#    runs-on: ubuntu-latest
-#    steps:
-#      - uses: actions/checkout@v4
-#      - uses: actions/setup-python@v5
-#        with:
-#          python-version: '3.12'
-#          cache: 'pip'
-#      - run: pip install -r requirements.txt
-#      - name: Create .env file
-#        run: |
-#          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
-#          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
-#          echo "OUTPUT_CSV=${{ secrets.OUTPUT_CSV }}"           >> .env
-#          echo "BACKUP_DIR=${{ secrets.BACKUP_DIR }}"           >> .env
-#      - uses: actions/download-artifact@v4
-#        with:
-#          name: features-data
-#          path: data/features/
-#      - run: python src/who_will_viral/train.py
-#      - uses: actions/upload-artifact@v4
-#        with:
-#          name: model-artifacts
-#          path: models/
+  feature-engineering:
+    needs: [validate-clean]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - run: pip install -e .
+      - run: pip install dotenv
+      - name: Create .env file
+        run: |
+          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
+          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
+          echo "OUTPUT_CSV=./data/youtube/youtube_enriched.csv" >> .env
+          echo "BACKUP_DIR=./data/youtube/backup"               >> .env
+          echo "HF_TOKEN=${{ secrets.HF_TOKEN }}"               >> .env
+          echo "CLEANED_PATH=./data/youtube/cleaned_dataset.csv" >> .env
+          echo "MERGED_PATH=./data/youtube/dataset.csv"         >> .env
+          echo "EXTRACTED_PATH=./data/youtube/extracted.csv"    >> .env
+          echo "TRAIN_PATH=./data/youtube/train.csv"            >> .env
+          echo "VAL_PATH=./data/youtube/val.csv"                >> .env
+          echo "TEST_PATH=./data/youtube/test.csv"              >> .env
+          echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv" >> .env
+          echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"  >> .env
+          echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv" >> .env
+      - name: Create data directories
+        run: mkdir -p data/youtube
+      - uses: actions/download-artifact@v4
+        with:
+          name: cleaned-data
+          path: ./data/youtube/
+      - run: python src/who_will_viral/features.py
+      - uses: actions/upload-artifact@v4
+        with:
+          name: features-data
+          path: ./data/youtube/extracted.csv

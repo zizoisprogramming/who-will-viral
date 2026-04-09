@@ -7,17 +7,22 @@ from itertools import groupby
 import great_expectations as gx
 import numpy as np
 import pandas as pd
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 
-def extract_hl_list_from_file(file_path):
-    with open(file_path, "r", encoding="utf-8") as f:
-        json_data = json.load(f)
-
-    base_codes = {
-        item["snippet"]["hl"].split("-")[0].lower()
-        for item in json_data.get("items", [])
-    }
-    return list(base_codes)
+HL_LIST = [
+    'af', 'am', 'ar', 'as', 'az', 'be', 'bg', 'bn', 'bs', 'ca',
+    'cs', 'da', 'de', 'el', 'en', 'es', 'et', 'eu', 'fa', 'fi',
+    'fil', 'fr', 'gl', 'gu', 'hi', 'hr', 'hu', 'hy', 'id', 'is',
+    'it', 'iw', 'ja', 'ka', 'kk', 'km', 'kn', 'ko', 'ky', 'lo',
+    'lt', 'lv', 'mk', 'ml', 'mn', 'mr', 'ms', 'my', 'no', 'ne',
+    'nl', 'or', 'pa', 'pl', 'pt', 'ro', 'ru', 'si', 'sk', 'sl',
+    'sq', 'sr', 'sv', 'sw', 'ta', 'te', 'th', 'tr', 'uk', 'ur',
+    'uz', 'vi', 'zh', 'zu'
+]
 
 def normalize_lang(lang):
     if not lang:
@@ -244,7 +249,7 @@ class DataValidator:
 
         return self._save(report)
     
-    def validate_default_language(self, df, hl_file_path="data/youtube/hl_list.json"):
+    def validate_default_language(self, df):
         """Default language values check against YouTube i18n language list"""
         report = self._make_report("Default Language", "Consistency")
     
@@ -255,7 +260,7 @@ class DataValidator:
     
         hl_set = {
             code.split("-")[0].lower()
-            for code in extract_hl_list_from_file(hl_file_path)
+            for code in HL_LIST
         } | YOUTUBE_EXTRA_LANGS
     
         series = df["defaultLanguage"].dropna()
@@ -691,7 +696,7 @@ YOUTUBE_EXTRA_LANGS = {
 }
 
 # allow reading empty strings 
-df = pd.read_csv("data/youtube/cleaned_dataset.csv",keep_default_na=False)
+df = pd.read_csv(os.getenv("CLEANED_PATH") ,keep_default_na=False)
 
 # 1. Quick snapshot
 quick_summary(df)

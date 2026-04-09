@@ -7,6 +7,9 @@ from datetime import datetime
 from dataclasses import dataclass, field
 from typing import Callable
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 os.makedirs("logs", exist_ok=True)
 
@@ -314,11 +317,11 @@ def build_youtube_pipeline(hl_file_path="data/youtube/hl_list.json") -> Cleaning
 
 
 if __name__ == "__main__":
-    df = pd.read_csv("data/youtube/dataset.csv")
+    df = pd.read_csv(os.getenv("MERGED_PATH"))
 
     pipeline = build_youtube_pipeline()
     cleaned_df = pipeline.fit_transform(df)
     pipeline.log.summary()
 
-    cleaned_df.to_csv("data/youtube/clean_dataset.csv", index=False)
+    cleaned_df.to_csv(os.getenv("CLEANED_PATH"), index=False)
     print(f"Saved -> data/youtube/clean_dataset.csv")
