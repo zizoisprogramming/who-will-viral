@@ -84,6 +84,6 @@ class YoutubePipeline:
 
         return final_df
 
-
-pipeline = YoutubePipeline()
-pipeline.run()
+if __name__ == "__main__":
+    pipeline = YoutubePipeline()
+    pipeline.run()

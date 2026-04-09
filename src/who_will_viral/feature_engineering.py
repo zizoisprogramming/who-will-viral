@@ -30,5 +30,6 @@ class FeatureEngineering:
         feature_scaling = FeatureScaling(self.train_path, self.val_path, self.test_path)
         feature_scaling.run()
 
-print("Running feature engineering...")
-FeatureEngineering().run()
+if __name__ == "__main__":
+    print("Running feature engineering...")
+    FeatureEngineering().run()

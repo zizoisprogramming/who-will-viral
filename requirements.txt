@@ -235,6 +235,7 @@ coverage==7.13.5 \
     --hash=sha256:f4cd16206ad171cbc2470dbea9103cf9a7607d5fe8c242fdf1edf36174020664 \
     --hash=sha256:f70c9ab2595c56f81a89620e22899eea8b212a4041bd728ac6f4a28bf5d3ddd0 \
     --hash=sha256:fbabfaceaeb587e16f7008f7795cd80d20ec548dc7f94fbb0d4ec2e038ce563f
+    # via pytest-cov
 cryptography==46.0.7 \
     --hash=sha256:128c5edfe5e5938b86b03941e94fac9ee793a94452ad1365c9fc3f4f62216832 \
     --hash=sha256:1d25aee46d0c6f1a501adcddb2d2fee4b979381346a78558ed13e50aa8a59067 \
@@ -702,7 +703,9 @@ pandas==3.0.2 \
 pluggy==1.6.0 \
     --hash=sha256:7dcc130b76258d33b90f61b658791dede3486c3e6bfb003ee5c9bfb396dd22f3 \
     --hash=sha256:e920276dd6813095e9377c0bc5566d94c932c33b27a3e3945d8389c374dd4746
-    # via pytest
+    # via
+    #   pytest
+    #   pytest-cov
 proto-plus==1.27.2 \
     --hash=sha256:6432f75893d3b9e70b9c412f1d2f03f65b11fb164b793d14ae2ca01821d22718 \
     --hash=sha256:b2adde53adadf75737c44d3dcb0104fde65250dfc83ad59168b4aa3e574b6a24
@@ -814,6 +817,15 @@ pyparsing==3.3.2 \
 pytest==9.0.3 \
     --hash=sha256:2c5efc453d45394fdd706ade797c0a81091eccd1d6e4bccfcd476e2b8e0ab5d9 \
     --hash=sha256:b86ada508af81d19edeb213c681b1d48246c1a91d304c6c81a427674c17eb91c
+    # via
+    #   pytest-cov
+    #   pytest-mock
+pytest-cov==7.1.0 \
+    --hash=sha256:30674f2b5f6351aa09702a9c8c364f6a01c27aae0c1366ae8016160d1efc56b2 \
+    --hash=sha256:a0461110b7865f9a271aa1b51e516c9a95de9d696734a2f71e3e78f46e1d4678
+pytest-mock==3.15.1 \
+    --hash=sha256:0a25e2eb88fe5168d535041d09a4529a188176ae608a6d249ee65abc0949630d \
+    --hash=sha256:1849a238f6f396da19762269de72cb1814ab44416fa73a8686deac10b0d87a0f
 python-dateutil==2.9.0.post0 \
     --hash=sha256:37dd54208da7e1cd875388217d5e00ebd4179249f90fb72437e91a35459a0ad3 \
     --hash=sha256:a8b2bc7bffae282281c8140a97d3aa9c14da0b136dfe83f850eea9a5f7470427

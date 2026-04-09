@@ -3,7 +3,6 @@ import json
 from datetime import datetime
 from itertools import groupby
 
-import great_expectations as gx
 import numpy as np
 import pandas as pd
 
@@ -57,7 +56,7 @@ def quick_summary(df: pd.DataFrame):
 
 
 def run_gx_validation(df: pd.DataFrame):
-
+    import great_expectations as gx
     context     = gx.get_context(mode="ephemeral")
     data_source = context.data_sources.add_pandas(name="pandas_source")
     data_asset  = data_source.add_dataframe_asset(name="videos_asset")
@@ -700,50 +699,51 @@ YOUTUBE_EXTRA_LANGS = {
     "chr", "mni", "vro", "ase", "mo", "bi", "und", "zxx", "sdp"
 }
 
-df = pd.read_csv("data/youtube/dataset.csv")
+if __name__ == "__main__":
+    df = pd.read_csv("data/youtube/dataset.csv")
 
-# 1. Quick snapshot
-quick_summary(df)
+    # 1. Quick snapshot
+    quick_summary(df)
 
-# 2. Great Expectations (declarative)
-gx_results = run_gx_validation(df)
+    # 2. Great Expectations (declarative)
+    gx_results = run_gx_validation(df)
 
-# 3. Pandas (only what GX cannot express)
-validator = DataValidator()
+    # 3. Pandas (only what GX cannot express)
+    validator = DataValidator()
 
-# Consistency
-validator.validate_schema(df, EXPECTED_COLUMNS, EXPECTED_TYPES)
-validator.validate_default_language(df)
+    # Consistency
+    validator.validate_schema(df, EXPECTED_COLUMNS, EXPECTED_TYPES)
+    validator.validate_default_language(df)
 
-# Completeness
-validator.validate_no_blank_strings(df, TEXT_COLUMNS)
+    # Completeness
+    validator.validate_no_blank_strings(df, TEXT_COLUMNS)
 
-# Accuracy - cross-column conditional logic
-validator.validate_cross_column_rules(df)
+    # Accuracy - cross-column conditional logic
+    validator.validate_cross_column_rules(df)
 
-# Timeliness
-validator.validate_no_future_dates(df, DATE_COLUMNS)
-validator.validate_date_order(df, "publishedAt", "trending_date")
+    # Timeliness
+    validator.validate_no_future_dates(df, DATE_COLUMNS)
+    validator.validate_date_order(df, "publishedAt", "trending_date")
 
-# Outliers
-validator.validate_outliers_iqr(df, NUMERIC_COLUMNS, multiplier=1.5)
-validator.validate_outliers_zscore(df, NUMERIC_COLUMNS, threshold=3.0)
+    # Outliers
+    validator.validate_outliers_iqr(df, NUMERIC_COLUMNS, multiplier=1.5)
+    validator.validate_outliers_zscore(df, NUMERIC_COLUMNS, threshold=3.0)
 
-# Distribution
-validator.validate_category_dominance(df, "categoryId", max_share=0.80)
-validator.validate_non_zero_variance(df, NUMERIC_COLUMNS)
-validator.validate_class_imbalance(df, "is_trending", threshold=0.90)
+    # Distribution
+    validator.validate_category_dominance(df, "categoryId", max_share=0.80)
+    validator.validate_non_zero_variance(df, NUMERIC_COLUMNS)
+    validator.validate_class_imbalance(df, "is_trending", threshold=0.90)
 
-# Relationships
-validator.validate_correlation(df, NUMERIC_COLUMNS, 0.6)
-validator.validate_correlation(df, NUMERIC_COLUMNS, 0.6, method="spearman")
-validator.validate_skew(df,NUMERIC_COLUMNS, 0.6)
+    # Relationships
+    validator.validate_correlation(df, NUMERIC_COLUMNS, 0.6)
+    validator.validate_correlation(df, NUMERIC_COLUMNS, 0.6, method="spearman")
+    validator.validate_skew(df,NUMERIC_COLUMNS, 0.6)
 
-# Referential Integrity
-validator.validate_count_matches_list(df, "chapter_count", "chapters")
-validator.validate_count_matches_list(df, "card_count", "cards")
+    # Referential Integrity
+    validator.validate_count_matches_list(df, "chapter_count", "chapters")
+    validator.validate_count_matches_list(df, "card_count", "cards")
 
-pandas_summary = validator.generate_report()
+    pandas_summary = validator.generate_report()
 
-# 4. Unified scorecard
-summarize_all(gx_results, pandas_summary)
+    # 4. Unified scorecard
+    summarize_all(gx_results, pandas_summary)

@@ -3,7 +3,6 @@ import os
 from datetime import datetime
 from itertools import groupby
 
-import great_expectations as gx
 import numpy as np
 import pandas as pd
 from dotenv import load_dotenv
@@ -61,7 +60,7 @@ def quick_summary(df: pd.DataFrame):
 
 
 def run_gx_validation(df: pd.DataFrame):
-
+    import great_expectations as gx
     context     = gx.get_context(mode="ephemeral")
     data_source = context.data_sources.add_pandas(name="pandas_source")
     data_asset  = data_source.add_dataframe_asset(name="videos_asset")
