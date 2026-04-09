@@ -13,7 +13,7 @@ HF_TOKEN = os.getenv("HF_TOKEN")
 
 RATIOS = {
     "likes" : "like_to_view_ratio", 
-    "comments" : "comment_to_view_ratio"
+    "comment_count" : "comment_to_view_ratio"
 }
 EMBEDDINGS_COLS = ["tags_joined", "description", "title"]
 EMOJIS_COLS = ["description", "title"]
@@ -66,12 +66,33 @@ class FeatureExtraction:
         df["title_has_caps_ratio"] = df["title"].apply(lambda x: sum(1 for c in x if c.isupper()) / len(x))
         df["tags"] = df["tags"].apply(self._parse_tags)
         df["tags_joined"] = df["tags"].apply(lambda tags: " ".join(tags))
+        df['has_cards'] = (df['card_count'] > 0).astype(int)
+        df['has_chapter'] = (df['chapter_count'] > 0).astype(int)
         return df
     
     def _time_features(self, df):
         df["publish_hour"] = pd.to_datetime(df["publishedAt"]).dt.hour
         df["publish_dayofweek"] = pd.to_datetime(df["publishedAt"]).dt.dayofweek
         df["duration_seconds"] = df["duration"].apply(self._get_duration_seconds)
+        return df
+        
+    def _region_features(self, df):
+        df['lang_base'] = df['defaultLanguage'].str.split('-').str[0]
+        df['lang_region'] = df['defaultLanguage'].str.split('-').str[1]
+        df['lang_region'] = df['lang_region'].fillna('NO')
+        threshold = 0.002
+
+        freq = df['lang_base'].value_counts(normalize=True)
+        rare = freq[freq < threshold].index
+
+        df['lang_base'] = df['lang_base'].replace(rare, 'other')
+
+        threshold = 0.005
+
+        freq = df['lang_region'].value_counts(normalize=True)
+        rare = freq[freq < threshold].index
+
+        df['lang_region'] = df['lang_region'].replace(rare, 'other')
         return df
     
     def _get_best_embeddings(self, df):
@@ -88,5 +109,10 @@ class FeatureExtraction:
         df = self._apply_functions(df)
         df = self._time_features(df)
         df = self._count_emojis(df)
+        df = self._region_features(df)
         df = self._get_best_embeddings(df)
-        df.to_csv("/Users/ziadsamer/Documents/who-will-viral/data/extracted.csv", index=False)
+        df.to_csv("/Users/ziadsamer/Documents/who-will-viral/data/youtube/extracted.csv", index=False)
+        return df
+
+
+FeatureExtraction().run(pd.read_csv("/Users/ziadsamer/Documents/who-will-viral/data/youtube/cleaned_dataset.csv", keep_default_na=False))
