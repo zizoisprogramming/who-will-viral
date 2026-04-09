@@ -19,7 +19,7 @@ EMBEDDINGS_COLS = ["tags_joined", "description", "title"]
 EMOJIS_COLS = ["description", "title"]
 class FeatureExtraction:
     def __init__(self):
-        self.model = SentenceTransformer("paraphrase-MiniLM-L3-v2", token=HF_TOKEN)
+        self.model = SentenceTransformer("all-MiniLM-L6-v2", token=HF_TOKEN)
 
     # Functions used
     def _count_emojis(self, df):
@@ -103,7 +103,7 @@ class FeatureExtraction:
             return df
         for col in EMBEDDINGS_COLS:
             for_embedding = df[col].replace("", "no text")
-            embeddings = self.model.encode(for_embedding.tolist(), show_progress_bar=False, batch_size=512)
+            embeddings = self.model.encode(for_embedding.tolist(), show_progress_bar=True, batch_size=512)
             embeddings_df = pd.DataFrame(embeddings, columns=[f"{col}_emb_{i}" for i in range(embeddings.shape[1])])
             df = pd.concat([df.reset_index(drop=True), embeddings_df], axis=1)
         return df
