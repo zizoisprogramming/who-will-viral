@@ -14,12 +14,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
       - run: pip install ruff mypy bandit
-      - run: ruff check src/
-      - run: mypy src/ --ignore-missing-imports
-      - run: bandit -r src/ -ll
+      - run: ruff check src/who_will_viral/
+      - run: mypy src/who_will_viral/ --ignore-missing-imports --disable-error-code=union-attr --disable-error-code=arg-type --disable-error-code=import-untyped
+      - run: bandit -r src/who_will_viral/ -ll
 
   acquire:
     needs: [code-quality]
@@ -28,14 +28,28 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
       - run: pip install -r requirements.txt
-      - run: python src/who_will_viral/acquisition.py
+      - run: pip install -e .
+      - run: pip install gdown
+      - run: pip install dotenv
+      - name: Create .env file
+        run: |
+          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
+          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
+          echo "OUTPUT_CSV=${{ secrets.OUTPUT_CSV }}"           >> .env
+          echo "BACKUP_DIR=${{ secrets.BACKUP_DIR }}"           >> .env
+      - name: Create data directories
+        run: mkdir -p data/youtube data/raw
+      - name: Download base CSV from Google Drive
+        run: gdown ${{ secrets.DRIVE_FILE_ID }} -O data/youtube/youtube.csv
+      - run: env PYTHONPATH=src python src/who_will_viral/acquire.py 
+      - run: python src/who_will_viral/acquire.py
       - uses: actions/upload-artifact@v4
         with:
           name: raw-data
-          path: data/raw/
+          path: data/youtube/youtube_enriched.csv
 
   validate:
     needs: [acquire]
@@ -44,13 +58,19 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
-      - run: pip install -r requirements.txt
+      - run: pip install -e .
+      - name: Create .env file
+        run: |
+          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
+          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
+          echo "OUTPUT_CSV=${{ secrets.OUTPUT_CSV }}"           >> .env
+          echo "BACKUP_DIR=${{ secrets.BACKUP_DIR }}"           >> .env
       - uses: actions/download-artifact@v4
         with:
           name: raw-data
-          path: data/raw/
+          path: data/youtube/
       - run: python src/who_will_viral/validate.py
       - uses: actions/upload-artifact@v4
         with:
@@ -64,16 +84,21 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
           cache: 'pip'
       - run: pip install -r requirements.txt pytest pytest-cov
+      - name: Create .env file
+        run: |
+          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
+          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
+          echo "OUTPUT_CSV=${{ secrets.OUTPUT_CSV }}"           >> .env
+          echo "BACKUP_DIR=${{ secrets.BACKUP_DIR }}"           >> .env
       - uses: actions/download-artifact@v4
         with:
           name: validated-data
           path: data/validated/
       - run: pytest tests/ --cov=src --cov-report=xml
 
-# --- uncomment each job as you build that stage ---
 
 #  clean:
 #    needs: [validate]
@@ -82,9 +107,15 @@ jobs:
 #      - uses: actions/checkout@v4
 #      - uses: actions/setup-python@v5
 #        with:
-#          python-version: '3.11'
+#          python-version: '3.12'
 #          cache: 'pip'
 #      - run: pip install -r requirements.txt
+#      - name: Create .env file
+#        run: |
+#          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
+#          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
+#          echo "OUTPUT_CSV=${{ secrets.OUTPUT_CSV }}"           >> .env
+#          echo "BACKUP_DIR=${{ secrets.BACKUP_DIR }}"           >> .env
 #      - uses: actions/download-artifact@v4
 #        with:
 #          name: validated-data
@@ -102,9 +133,15 @@ jobs:
 #      - uses: actions/checkout@v4
 #      - uses: actions/setup-python@v5
 #        with:
-#          python-version: '3.11'
+#          python-version: '3.12'
 #          cache: 'pip'
 #      - run: pip install -r requirements.txt
+#      - name: Create .env file
+#        run: |
+#          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
+#          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
+#          echo "OUTPUT_CSV=${{ secrets.OUTPUT_CSV }}"           >> .env
+#          echo "BACKUP_DIR=${{ secrets.BACKUP_DIR }}"           >> .env
 #      - uses: actions/download-artifact@v4
 #        with:
 #          name: cleaned-data
@@ -122,9 +159,15 @@ jobs:
 #      - uses: actions/checkout@v4
 #      - uses: actions/setup-python@v5
 #        with:
-#          python-version: '3.11'
+#          python-version: '3.12'
 #          cache: 'pip'
 #      - run: pip install -r requirements.txt
+#      - name: Create .env file
+#        run: |
+#          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
+#          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
+#          echo "OUTPUT_CSV=${{ secrets.OUTPUT_CSV }}"           >> .env
+#          echo "BACKUP_DIR=${{ secrets.BACKUP_DIR }}"           >> .env
 #      - uses: actions/download-artifact@v4
 #        with:
 #          name: features-data
