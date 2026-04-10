@@ -85,22 +85,6 @@ class FeatureSelection:
         zeros = self.df_train[self.df_train["is_trending"] == 0].sample(n=len(ones), random_state=42)
 
         sample = pd.concat([ones, zeros]).sample(frac=1, random_state=42)
-
-        if os.getenv("CI"):
-            pd.DataFrame({
-                "A": [1,2,3],
-                "is_trending": [1,1,1]
-            }).to_csv(self.train_path, index=False)
-            pd.DataFrame({
-                "A": [1,2,3],
-                "is_trending": [1,1,1]
-            }).to_csv(self.test_path, index=False)
-            pd.DataFrame({
-                "A": [1,2,3],
-                "is_trending": [1,1,1]
-            }).to_csv(self.val_path, index=False)
-            return
-
         dt_cf = DecisionTreeClassifier(random_state=42)
         rfecv = RFECV(estimator=dt_cf, step=1, cv=5, scoring='f1', n_jobs=-1)
         rfecv.fit(sample.drop(columns=["is_trending"]), sample["is_trending"])
