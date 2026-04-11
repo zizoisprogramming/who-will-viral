@@ -1,0 +1,14 @@
+artifact_uri: file:///F:/CMP_4th/term%202/data%20science/who-will-viral/src/who_will_viral/models/mlruns/144743981280628231/80e76661604349299c87f3aa096276eb/artifacts
+end_time: 1775938500445
+entry_point_name: ''
+experiment_id: '144743981280628231'
+lifecycle_stage: active
+run_id: 80e76661604349299c87f3aa096276eb
+run_name: LR — SMOTE
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1775938495274
+status: 3
+tags: []
+user_id: MM

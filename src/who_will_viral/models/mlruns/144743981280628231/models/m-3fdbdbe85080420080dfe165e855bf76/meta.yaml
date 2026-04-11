@@ -1,0 +1,10 @@
+artifact_location: file:///F:/CMP_4th/term%202/data%20science/who-will-viral/src/who_will_viral/models/mlruns/144743981280628231/models/m-3fdbdbe85080420080dfe165e855bf76/artifacts
+creation_timestamp: 1775938495392
+experiment_id: '144743981280628231'
+last_updated_timestamp: 1775938500342
+model_id: m-3fdbdbe85080420080dfe165e855bf76
+model_type: null
+name: model
+source_run_id: 80e76661604349299c87f3aa096276eb
+status: 2
+status_message: null
