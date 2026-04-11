@@ -1,15 +1,14 @@
-
 .PHONY: all acquire validate pipeline venv install freeze clean
 
 # Python command
-PYTHON = python -m
+PYTHON = uv run python -m
 
 # Files
 ACQUIRE = src.who_will_viral.acquire
 VALIDATE = src.who_will_viral.validate
 CLEAN = src.who_will_viral.clean
 VALIDATE_CLEANED = src.who_will_viral.validation_cleaned
-FEATURE = src.who_will_viral.feature_engineering
+FEATURE = src/who_will_viral/feature_engineering.py
 
 
 # Default target
@@ -33,23 +32,17 @@ validate_cleaned:
 
 # Run feature engineering
 feature:
-	$(PYTHON) $(FEATURE)
+	uv run python $(FEATURE)
 
 
 # Full pipeline
 pipeline: acquire validate clean validate_cleaned feature
 
-# Create virtual environment
-venv:
-	$(PYTHON) -m venv venv
-
-# Install basic packages (temporary until req.txt)
 install:
-	pip install pandas numpy great_expectations
+	uv sync
 
-# Freeze dependencies into requirements.txt
 freeze:
-	pip freeze > requirements.txt
+	uv lock
 
 # Clean cache
 clean:
