@@ -27,6 +27,7 @@ class FeatureScaling:
 
 
     def run(self):
+
         df_train = pd.read_csv(self.train_path)
         df_val = pd.read_csv(self.val_path)
         df_test = pd.read_csv(self.test_path)

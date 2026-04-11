@@ -83,7 +83,6 @@ class FeatureSelection:
         zeros = self.df_train[self.df_train["is_trending"] == 0].sample(n=len(ones), random_state=42)
 
         sample = pd.concat([ones, zeros]).sample(frac=1, random_state=42)
-
         dt_cf = DecisionTreeClassifier(random_state=42)
         rfecv = RFECV(estimator=dt_cf, step=1, cv=5, scoring='f1', n_jobs=-1)
         rfecv.fit(sample.drop(columns=["is_trending"]), sample["is_trending"])
