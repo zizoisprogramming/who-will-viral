@@ -10,3 +10,4 @@ data/
 *.zip
 main.py
 compare.py
+*/mlruns
