@@ -6,8 +6,10 @@
 data/
 */__pycache__
 */*/__pycache__
+*.pyc
+mlruns/
+**/mlruns/
 *.csv
 *.zip
 main.py
 compare.py
-*/mlruns
