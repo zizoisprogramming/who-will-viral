@@ -24,6 +24,13 @@ def setup_mlflow():
 def run_experiment(run_name, model, X_tr, y_tr, X_ev, y_ev, params=None, tags=None):
 
     model.fit(X_tr, y_tr)
+    if hasattr(model, 'best_params_'):
+        best_params = model.best_params_
+        best_score = model.best_score_
+        print(f"Best Params: {best_params}, Best CV Score: {best_score:.4f}")
+    else:
+        best_params = params or {}
+        best_score = None
     y_pred = model.predict(X_ev)
     # predict probability if supported
     y_prob = model.predict_proba(X_ev)[:, 1] if hasattr(model, 'predict_proba') else None
@@ -56,7 +63,9 @@ def run_experiment(run_name, model, X_tr, y_tr, X_ev, y_ev, params=None, tags=No
     # track experiments
     with mlflow.start_run(run_name=run_name):
         mlflow.set_tags(tags or {})
-        mlflow.log_params(params or {})
+        mlflow.log_params(best_params or {})
+        if best_score is not None:
+            mlflow.log_metric('best_cv_score', best_score)
         mlflow.log_metrics({k: v for k, v in metrics.items() if v is not None})
         mlflow.sklearn.log_model(model, 'model')
         fig2, ax2 = plt.subplots(figsize=(4, 3))
