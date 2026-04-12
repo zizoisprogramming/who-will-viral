@@ -254,6 +254,7 @@ class ModelTrainer:
         y_pred = self.best_model.predict(self.X_test)
         report = classification_report(self.y_test, y_pred)
         print(f"Test Report for Best Model: {self.best_model_name}")
+        print(report)
         return report
 if __name__ == "__main__":
     trainer = ModelTrainer(
