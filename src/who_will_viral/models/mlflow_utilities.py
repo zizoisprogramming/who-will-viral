@@ -21,9 +21,10 @@ def setup_mlflow():
     (BASE_DIR / "mlruns").mkdir(exist_ok=True)  # ensure folder exists
     mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
     mlflow.set_experiment(EXPERIMENT_NAME)
-def run_experiment(run_name, model, X_tr, y_tr, X_ev, y_ev, params=None, tags=None):
+def run_experiment(run_name, model, X_tr, y_tr, X_ev, y_ev, params=None, tags=None, skip_fit = False):
 
-    model.fit(X_tr, y_tr)
+    if not skip_fit:
+        model.fit(X_tr, y_tr)
     if hasattr(model, 'best_params_'):
         best_params = model.best_params_
         best_score = model.best_score_
