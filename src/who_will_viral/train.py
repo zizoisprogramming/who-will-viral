@@ -14,7 +14,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import LinearSVC
 from xgboost import XGBClassifier
 
-from .mlflow_utilities import run_experiment, setup_mlflow
+from who_will_viral.mlflow_utilities import run_experiment, setup_mlflow
 
 warnings.filterwarnings("ignore")
 
