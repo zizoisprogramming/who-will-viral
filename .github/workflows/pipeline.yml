@@ -205,3 +205,43 @@ jobs:
         with:
           name: features-data
           path: ./data/youtube/extracted.csv
+
+  modelling:
+    needs: [feature-engineering]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+      - run: pip install -r requirements.txt
+      - run: pip install -e .
+      - run: pip install dotenv
+      - name: Create .env file
+        run: |
+          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
+          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
+          echo "OUTPUT_CSV=./data/youtube/youtube_enriched.csv" >> .env
+          echo "BACKUP_DIR=./data/youtube/backup"               >> .env
+          echo "HF_TOKEN=${{ secrets.HF_TOKEN }}"               >> .env
+          echo "CLEANED_PATH=./data/youtube/cleaned_dataset.csv" >> .env
+          echo "MERGED_PATH=./data/youtube/dataset.csv"         >> .env
+          echo "EXTRACTED_PATH=./data/youtube/extracted.csv"    >> .env
+          echo "TRAIN_PATH=./data/youtube/train.csv"            >> .env
+          echo "VAL_PATH=./data/youtube/val.csv"                >> .env
+          echo "TEST_PATH=./data/youtube/test.csv"              >> .env
+          echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv" >> .env
+          echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"  >> .env
+          echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv" >> .env
+      - name: Create data directories
+        run: mkdir -p data/youtube
+      - uses: actions/download-artifact@v4
+        with:
+          name: features-data
+          path: ./data/youtube/
+      - run: python src/who_will_viral/train.py
+      # - uses: actions/upload-artifact@v4
+      #   with:
+      #     name: features-data
+      #     path: ./data/youtube/extracted.csv
