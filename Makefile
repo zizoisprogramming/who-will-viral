@@ -8,6 +8,7 @@ ACQUIRE = src.who_will_viral.acquire
 VALIDATE = src.who_will_viral.validate
 CLEAN = src.who_will_viral.clean
 VALIDATE_CLEANED = src.who_will_viral.validation_cleaned
+VISUALIZE = src.who_will_viral.visualization.visualization 
 FEATURE = src/who_will_viral/feature_engineering.py
 TRAIN = src.who_will_viral.train
 
@@ -30,6 +31,10 @@ clean_data:
 # Run validation after cleaning
 validate_cleaned:
 	$(PYTHON) $(VALIDATE_CLEANED)
+
+# Run visualization
+visualize:
+	$(PYTHON) $(VISUALIZE)
 
 # Run feature engineering
 feature:
@@ -59,6 +64,7 @@ help:
 	@echo "make validate  - Run validation only"
 	@echo "make clean_data     - Run cleaning only"
 	@echo "make validate_cleaned  - Run validation after cleaning only"
+	@echo "make visualize - Run visualization only"
 	@echo "make feature   - Run feature engineering only"
 	@echo "make train     - Run training only"
 	@echo "make venv      - Create virtual environment"

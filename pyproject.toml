@@ -38,6 +38,7 @@ dependencies = [
   "xgboost>=3.2.0",
   "mlflow>=2.14.0",
   "protobuf<4",
+  "seaborn>=0.13.2",
 ]
 requires-python = ">=3.12,<3.14"
 
