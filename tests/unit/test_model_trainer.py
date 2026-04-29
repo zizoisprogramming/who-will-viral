@@ -1,18 +1,20 @@
-import pytest
-import pandas as pd
 import sys
 from pathlib import Path
+
+import pandas as pd
+import pytest
+
+from src.who_will_viral.train import ModelTrainer
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT_DIR))
 
-from src.who_will_viral.train import ModelTrainer
 
 
 @pytest.fixture
 def sample_data(tmp_path):
     """Create small fake CSV datasets for training."""
-    
+
     df = pd.DataFrame({
         "feature1": list(range(50)),
         "feature2": list(range(50, 100)),

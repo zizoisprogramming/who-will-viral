@@ -44,7 +44,7 @@ if __name__ == "__main__":
     # ── Time Features vs Target ───────────────────────────────────────────────────
     fig, axes = plt.subplots(1, len(time_cols), figsize=(4 * len(time_cols), 4))
 
-    for ax, col in zip(axes, time_cols):
+    for ax, col in zip(axes, time_cols, strict=True):
         mean_vals = df.groupby(col)[TARGET_COLUMN].mean()
         ax.plot(mean_vals.index, mean_vals.values, marker='o')
         ax.set_title(f"{col} vs Target Rate")
@@ -52,7 +52,7 @@ if __name__ == "__main__":
         ax.set_ylabel("Mean Target")
 
     plt.tight_layout()
-    
+
     plt.savefig(os.path.join(target_directory, "time_vs_target.png"))
     plt.show()
 
@@ -63,16 +63,16 @@ if __name__ == "__main__":
     fig, ax = plt.subplots(figsize=(5, 3.5))
     bars = ax.bar(counts.index.astype(str), counts.values,
                 color=sns.color_palette("muted", 2), edgecolor="white", linewidth=0.8)
-    for bar, p in zip(bars, pct):
+    for bar, p in zip(bars, pct, strict=True):
         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + counts.max() * 0.01,
                 f"{p:.1f}%", ha="center", va="bottom", fontsize=10)
     ax.set_title("Target class balance")
-    ax.set_ylim(0, counts.max() * 1.15) 
+    ax.set_ylim(0, counts.max() * 1.15)
     ax.set_xlabel(TARGET_COLUMN)
     ax.set_ylabel("Count")
-    
+
     plt.tight_layout()
-    
+
     plt.savefig(os.path.join(target_directory, "target_class_balance.png"))
     plt.show()
 
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     n = len(NUMERIC_COLUMNS)
     fig, axes = plt.subplots(1, n, figsize=(4 * n +2, 4))
     palette = {0: "#5b84b1", 1: "#fc5c65"}
-    for ax, col in zip(axes, NUMERIC_COLUMNS):
+    for ax, col in zip(axes, NUMERIC_COLUMNS, strict=True):
         for label, grp in df.groupby(TARGET_COLUMN):
             sns.kdeplot(np.log1p(grp[col].dropna()),
                         ax=ax, fill=True, alpha=0.35,
@@ -90,7 +90,7 @@ if __name__ == "__main__":
         ax.legend(fontsize=8)
     plt.suptitle("Numeric distributions by target", y=1)
     plt.tight_layout()
-    
+
     plt.savefig(os.path.join(target_directory, "numeric_distributions_by_target.png"))
     plt.show()
 
@@ -105,7 +105,7 @@ if __name__ == "__main__":
                 square=True, ax=ax)
     ax.set_title("Correlation matrix (log1p features + target)")
     plt.tight_layout()
-    
+
     plt.savefig(os.path.join(target_directory, "correlation_matrix.png"))
     plt.show()
 
@@ -116,7 +116,7 @@ if __name__ == "__main__":
     fig, axes = plt.subplots(nrows, ncols, figsize=(6 * ncols, 3.5 * nrows))
     axes = axes.flatten()
 
-    for i, col in enumerate(CATEGORICAL_COLUMNS):
+    for i, col in enumerate(CATEGORICAL_COLUMNS, strict=True):
         ax = axes[i]
         rate = (df.groupby(col)[TARGET_COLUMN].mean()
                 .sort_values(ascending=False)
@@ -132,7 +132,7 @@ if __name__ == "__main__":
         axes[j].set_visible(False)
     plt.suptitle("Trending rate per category", y=1)
     plt.tight_layout()
-    
+
     plt.savefig(os.path.join(target_directory, "trending_rate_per_category.png"))
     plt.show()
 
@@ -146,7 +146,7 @@ if __name__ == "__main__":
     fig, axes = plt.subplots(1, 2, figsize=(18, 4))
     palette = {0: "#5b84b1", 1: "#fc5c65"}
 
-    for ax, col in zip(axes, RATIO_COLS):
+    for ax, col in zip(axes, RATIO_COLS, strict=True):
         for label, grp in df.groupby(TARGET_COLUMN):
             vals = np.log1p(grp[col].clip(lower=0).dropna())
             sns.kdeplot(vals, ax=ax, fill=True, alpha=0.4,
@@ -161,7 +161,7 @@ if __name__ == "__main__":
 
     plt.suptitle("Engagement ratios by trending status (dashed = median)", y=1)
     plt.tight_layout()
-    
+
     plt.savefig(os.path.join(target_directory, "engagement_ratios.png"))
     plt.show()
 
@@ -202,7 +202,7 @@ if __name__ == "__main__":
 
     plt.suptitle("Title text signal vs trending", y=1)
     plt.tight_layout()
-    
+
     plt.savefig(os.path.join(target_directory, "title_text_signal.png"))
     plt.show()
 
@@ -244,7 +244,7 @@ if __name__ == "__main__":
 
     plt.suptitle("Channel-level analysis", y=1)
     plt.tight_layout()
-    
+
     plt.savefig(os.path.join(target_directory, "channel_level.png"))
     plt.show()
 
@@ -291,7 +291,7 @@ if __name__ == "__main__":
 
     plt.suptitle("Temporal patterns in trending", y=1)
     plt.tight_layout()
-    
+
     plt.savefig(os.path.join(target_directory, "temporal_patterns.png"))
     plt.show()
 
@@ -335,7 +335,8 @@ if __name__ == "__main__":
     kpi_bg     = ["#EAF2FB", "#FDECEA", "#EAF7F1", "#FEF8EC"]
     kpi_accent = [PALETTE["blue"], PALETTE["red"], PALETTE["green"], PALETTE["amber"]]
 
-    for i, ((title, value), bg, acc) in enumerate(zip(kpis.items(), kpi_bg, kpi_accent)):
+    for i, ((title, value), bg, acc) in \
+        enumerate(zip(kpis.items(), kpi_bg, kpi_accent, strict=True)):
         ax = fig.add_subplot(gs[0, i])
         ax.set_facecolor(bg)
         ax.set_xlim(0, 1)
@@ -407,7 +408,7 @@ if __name__ == "__main__":
     # Comment rate KDE
     ax6 = fig.add_subplot(gs[1, 2:])
     kde_colors = [PALETTE["blue"], PALETTE["red"]]
-    for (label, grp), col in zip(df.groupby(TARGET_COLUMN), kde_colors):
+    for (label, grp), col in zip(df.groupby(TARGET_COLUMN), kde_colors, strict=True):
         sns.kdeplot(np.log1p(grp["comment_rate"].clip(lower=0)),
                     ax=ax6, fill=True, alpha=0.35, color=col,
                     label=f"trending={label}")
@@ -418,7 +419,7 @@ if __name__ == "__main__":
 
     # Description length KDE
     ax1 = fig.add_subplot(gs[2, 0])
-    for (label, grp), col in zip(df.groupby(TARGET_COLUMN), kde_colors):
+    for (label, grp), col in zip(df.groupby(TARGET_COLUMN), kde_colors, strict=True):
         sns.kdeplot(np.log1p(grp["description_len"].clip(lower=0)),
                     ax=ax1, fill=True, alpha=0.35, color=col,
                     label=f"trending={label}")
@@ -479,6 +480,6 @@ if __name__ == "__main__":
                 xy=(10, top10_pct), xytext=(30, top10_pct - 20),
                 arrowprops=dict(arrowstyle="->", color=PALETTE["subtext"]),
                 fontsize=8, color=PALETTE["subtext"])
-    
+
     plt.savefig(os.path.join(target_directory, "dashboard.png"))
     plt.show()
