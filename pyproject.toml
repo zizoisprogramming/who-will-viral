@@ -77,4 +77,5 @@ exclude_also = [
 ]
 
 [tool.pytest.ini_options]
+pythonpath = ["."]
 testpaths = ["tests"]
