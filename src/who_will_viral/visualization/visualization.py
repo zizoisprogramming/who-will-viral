@@ -12,6 +12,7 @@ load_dotenv()
 if __name__ == "__main__":
     # ── Load Data ─────────────────────────────────────────────────────────────────
     df = pd.read_csv(os.getenv("CLEANED_PATH"), keep_default_na=False)
+    target_directory = os.getenv("FIGURES_PATH")
 
 
     # ── Feature Engineering ───────────────────────────────────────────────────────
@@ -52,6 +53,8 @@ if __name__ == "__main__":
         ax.set_ylabel("Mean Target")
 
     plt.tight_layout()
+    
+    plt.savefig(os.path.join(target_directory, "time_vs_target.png"))
     plt.show()
 
     # ── Target Class Balance ──────────────────────────────────────────────────────
@@ -65,14 +68,18 @@ if __name__ == "__main__":
         ax.text(bar.get_x() + bar.get_width() / 2, bar.get_height() + counts.max() * 0.01,
                 f"{p:.1f}%", ha="center", va="bottom", fontsize=10)
     ax.set_title("Target class balance")
+    ax.set_ylim(0, counts.max() * 1.15) 
     ax.set_xlabel(TARGET_COLUMN)
     ax.set_ylabel("Count")
+    
     plt.tight_layout()
+    
+    plt.savefig(os.path.join(target_directory, "target_class_balance.png"))
     plt.show()
 
     # ── Numeric Distributions by Target ──────────────────────────────────────────
     n = len(NUMERIC_COLUMNS)
-    fig, axes = plt.subplots(1, n, figsize=(4 * n, 4))
+    fig, axes = plt.subplots(1, n, figsize=(4 * n +2, 4))
     palette = {0: "#5b84b1", 1: "#fc5c65"}
     for ax, col in zip(axes, NUMERIC_COLUMNS):
         for label, grp in df.groupby(TARGET_COLUMN):
@@ -82,8 +89,10 @@ if __name__ == "__main__":
         ax.set_title(col)
         ax.set_xlabel("log1p(value)")
         ax.legend(fontsize=8)
-    plt.suptitle("Numeric distributions by target", y=1.02)
+    plt.suptitle("Numeric distributions by target", y=1)
     plt.tight_layout()
+    
+    plt.savefig(os.path.join(target_directory, "numeric_distributions_by_target.png"))
     plt.show()
 
     # ── Correlation Matrix ────────────────────────────────────────────────────────
@@ -97,6 +106,8 @@ if __name__ == "__main__":
                 square=True, ax=ax)
     ax.set_title("Correlation matrix (log1p features + target)")
     plt.tight_layout()
+    
+    plt.savefig(os.path.join(target_directory, "correlation_matrix.png"))
     plt.show()
 
 
@@ -120,8 +131,10 @@ if __name__ == "__main__":
 
     for j in range(i + 1, len(axes)):
         axes[j].set_visible(False)
-    plt.suptitle("Trending rate per category", y=1.01)
+    plt.suptitle("Trending rate per category", y=1)
     plt.tight_layout()
+    
+    plt.savefig(os.path.join(target_directory, "trending_rate_per_category.png"))
     plt.show()
 
 
@@ -131,7 +144,7 @@ if __name__ == "__main__":
 
     RATIO_COLS = ["like_rate", "comment_rate"]
 
-    fig, axes = plt.subplots(1, 2, figsize=(16, 4))
+    fig, axes = plt.subplots(1, 2, figsize=(18, 4))
     palette = {0: "#5b84b1", 1: "#fc5c65"}
 
     for ax, col in zip(axes, RATIO_COLS):
@@ -147,8 +160,10 @@ if __name__ == "__main__":
             med = np.log1p(grp[col].clip(lower=0).median())
             ax.axvline(med, color=palette[label], linestyle="--", lw=1, alpha=0.8)
 
-    plt.suptitle("Engagement ratios by trending status (dashed = median)", y=1.02)
+    plt.suptitle("Engagement ratios by trending status (dashed = median)", y=1)
     plt.tight_layout()
+    
+    plt.savefig(os.path.join(target_directory, "engagement_ratios.png"))
     plt.show()
 
 
@@ -164,7 +179,7 @@ if __name__ == "__main__":
 
     text_flags = ["title_has_emoji", "title_has_question", "title_has_hashtag", "title_has_caps"]
 
-    fig, axes = plt.subplots(1, 2, figsize=(14, 4))
+    fig, axes = plt.subplots(1, 2, figsize=(16, 4))
 
     # Trending rate by title length bin
     rate_by_len = df.groupby("title_len_bin", observed=True)[TARGET_COLUMN].mean()
@@ -186,8 +201,10 @@ if __name__ == "__main__":
     axes[1].tick_params(axis="x", rotation=20)
     axes[1].legend(title="flag value")
 
-    plt.suptitle("Title text signal vs trending", y=1.02)
+    plt.suptitle("Title text signal vs trending", y=1)
     plt.tight_layout()
+    
+    plt.savefig(os.path.join(target_directory, "title_text_signal.png"))
     plt.show()
 
     # ── Channel-Level Signals ─────────────────────────────────────────────────────
@@ -199,7 +216,7 @@ if __name__ == "__main__":
         is_verified    = ("is_verified",   "first")
     ).reset_index()
 
-    fig, axes = plt.subplots(1, 2, figsize=(16, 4))
+    fig, axes = plt.subplots(1, 2, figsize=(18, 4))
 
     ranked = channel_stats.sort_values("trending_count", ascending=False)
     ranked["cum_pct_channels"] = np.arange(1, len(ranked) + 1) / len(ranked) * 100
@@ -226,8 +243,10 @@ if __name__ == "__main__":
     axes[1].yaxis.set_major_formatter(plt.FuncFormatter(lambda y, _: f"{y:.0%}"))
     axes[1].tick_params(axis="x", rotation=0)
 
-    plt.suptitle("Channel-level analysis", y=1.02)
+    plt.suptitle("Channel-level analysis", y=1)
     plt.tight_layout()
+    
+    plt.savefig(os.path.join(target_directory, "channel_level.png"))
     plt.show()
 
     # ── Temporal Patterns ─────────────────────────────────────────────────────────
@@ -237,7 +256,7 @@ if __name__ == "__main__":
     day_labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
     pivot_time.columns = [day_labels[d] for d in pivot_time.columns]
 
-    fig, axes = plt.subplots(1, 2, figsize=(16, 6))
+    fig, axes = plt.subplots(1, 2, figsize=(18, 6))
 
     sns.heatmap(pivot_time, cmap="YlOrRd", annot=False,
                 linewidths=0.3, ax=axes[0], cbar_kws={"label": "P(trending)"})
@@ -271,8 +290,10 @@ if __name__ == "__main__":
     lines2, lab2 = ax2b.get_legend_handles_labels()
     ax2.legend(lines1 + lines2, lab1 + lab2, fontsize=8)
 
-    plt.suptitle("Temporal patterns in trending", y=1.02)
+    plt.suptitle("Temporal patterns in trending", y=1)
     plt.tight_layout()
+    
+    plt.savefig(os.path.join(target_directory, "temporal_patterns.png"))
     plt.show()
 
     # ── Inverse Transform for View Count ─────────────────────────────────────────
@@ -459,5 +480,6 @@ if __name__ == "__main__":
                 xy=(10, top10_pct), xytext=(30, top10_pct - 20),
                 arrowprops=dict(arrowstyle="->", color=PALETTE["subtext"]),
                 fontsize=8, color=PALETTE["subtext"])
-
+    
+    plt.savefig(os.path.join(target_directory, "dashboard.png"))
     plt.show()
