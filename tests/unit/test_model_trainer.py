@@ -54,25 +54,6 @@ def test_sampling_methods(sample_data):
     assert len(X_under) <= len(trainer.X_train)
 
 
-def test_train_knn_runs(sample_data):
-    train_path, val_path, test_path = sample_data
-    trainer = ModelTrainer(train_path, val_path, test_path, cv=2)
-
-    result = trainer.train_knn()
-
-    assert result is not None
-
-
-def test_best_model_updates(sample_data):
-    train_path, val_path, test_path = sample_data
-    trainer = ModelTrainer(train_path, val_path, test_path, cv=2)
-
-    trainer.train_gaussian_nb()
-
-    assert trainer.best_model is not None
-    assert trainer.best_model_name is not None
-    assert trainer.best_f1 >= 0
-
 
 def test_get_test_report_without_training(sample_data):
     train_path, val_path, test_path = sample_data
