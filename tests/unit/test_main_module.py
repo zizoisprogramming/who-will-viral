@@ -1,8 +1,6 @@
 """Tests for the __main__ module."""
 
-import pytest
-from unittest.mock import patch, MagicMock
-import sys
+from unittest.mock import patch
 
 
 def test_main_module_import():

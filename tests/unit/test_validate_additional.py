@@ -1,17 +1,11 @@
 """Additional tests for validate module to improve coverage."""
 
-import pytest
-import pandas as pd
-import numpy as np
 import json
-from pathlib import Path
-from unittest.mock import patch, MagicMock
 
-from src.who_will_viral.validate import (
-    extract_hl_list_from_file,
-    normalize_lang,
-    quick_summary
-)
+import pandas as pd
+import pytest
+
+from src.who_will_viral.validate import extract_hl_list_from_file, normalize_lang, quick_summary
 
 
 @pytest.fixture
@@ -53,7 +47,7 @@ def sample_df():
 def test_extract_hl_list_from_file(sample_hl_list_file):
     """Test extracting hl list from file."""
     result = extract_hl_list_from_file(str(sample_hl_list_file))
-    
+
     assert "en" in result
     assert "es" in result
     assert "fr" in result
@@ -66,7 +60,7 @@ def test_extract_hl_list_from_file_empty(tmp_path):
     file_path = tmp_path / "empty_hl_list.json"
     with open(file_path, 'w', encoding='utf-8') as f:
         json.dump(data, f)
-    
+
     result = extract_hl_list_from_file(str(file_path))
     assert result == []
 
@@ -99,7 +93,7 @@ def test_quick_summary_basic(sample_df, capsys):
     """Test quick_summary function with basic dataframe."""
     quick_summary(sample_df)
     captured = capsys.readouterr()
-    
+
     assert "DATASET QUICK SUMMARY" in captured.out
     assert "Rows" in captured.out
     assert "Columns" in captured.out
@@ -114,10 +108,10 @@ def test_quick_summary_with_missing_values(capsys):
         "col3": [10, 20, 30],
         "is_trending": [0, 1, 0]
     })
-    
+
     quick_summary(df)
     captured = capsys.readouterr()
-    
+
     assert "DATASET QUICK SUMMARY" in captured.out
     assert "Missing Values" in captured.out
 
@@ -128,9 +122,9 @@ def test_quick_summary_without_is_trending(capsys):
         "col1": [1, 2, 3],
         "col2": [4, 5, 6]
     })
-    
+
     quick_summary(df)
     captured = capsys.readouterr()
-    
+
     assert "DATASET QUICK SUMMARY" in captured.out
     assert "Rows" in captured.out

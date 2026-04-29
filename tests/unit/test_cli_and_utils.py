@@ -1,10 +1,8 @@
 """Tests for CLI and utils modules."""
 
-import pytest
-from unittest.mock import patch, MagicMock, call
 
-from who_will_viral.cli import main
 from who_will_viral import utils
+from who_will_viral.cli import main
 
 
 def test_cli_main_function(mocker):
@@ -12,9 +10,9 @@ def test_cli_main_function(mocker):
     # Mock the console and utils to avoid actual execution
     mock_console = mocker.patch("who_will_viral.cli.console")
     mock_utils = mocker.patch("who_will_viral.cli.utils.do_something_useful")
-    
+
     main()
-    
+
     # Verify console.print was called
     assert mock_console.print.call_count == 2
     # Verify utils function was called
@@ -24,8 +22,8 @@ def test_cli_main_function(mocker):
 def test_cli_main_calls_utils_function(mocker):
     """Test that CLI main calls utils.do_something_useful."""
     mock_utils = mocker.patch("who_will_viral.cli.utils.do_something_useful")
-    mock_console = mocker.patch("who_will_viral.cli.console")
-    
+    mocker.patch("who_will_viral.cli.console")
+
     main()
     mock_utils.assert_called_once()
 
