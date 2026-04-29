@@ -33,16 +33,14 @@ To set up for local development:
 git clone git@github.com:your_username/who_will_viral.git
 cd who_will_viral
 
-# Install in editable mode with live updates
-uv tool install --editable .
+# Install all dependencies (including dev)
+poetry install
 ```
-
-This installs the CLI globally but with live updates - any changes you make to the source code are immediately available when you run `who_will_viral`.
 
 Run tests:
 
 ```bash
-uv run pytest
+poetry run pytest
 ```
 
 Run quality checks (format, lint, type check, test):

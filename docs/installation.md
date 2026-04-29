@@ -5,13 +5,13 @@
 To install who-will-viral, run this command in your terminal:
 
 ```sh
-uv add who_will_viral
+pip install who_will_viral
 ```
 
-Or if you prefer to use `pip`:
+Or if you use Poetry in your own project:
 
 ```sh
-pip install who_will_viral
+poetry add who_will_viral
 ```
 
 ## From source
@@ -34,5 +34,5 @@ Once you have a copy of the source, you can install it with:
 
 ```sh
 cd who_will_viral
-uv sync
+poetry install
 ```

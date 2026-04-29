@@ -57,11 +57,11 @@ Ready to contribute? Here's how to set up who_will_viral for local development.
    git clone git@github.com:your_name_here/who_will_viral.git
    ```
 
-3. Install your local copy with uv:
+3. Install your local copy with Poetry:
 
    ```sh
    cd who_will_viral/
-   uv sync
+   poetry install
    ```
 
 4. Create a branch for local development:
@@ -107,19 +107,19 @@ Before you submit a pull request, check that it meets these guidelines:
 To run a subset of tests:
 
 ```sh
-uv run pytest tests/
+poetry run pytest tests/
 ```
 
 ## Releasing a New Version
 
 1. **Bump the version** and **write the changelog:**
    ```bash
-   uv version <version>        # or: uv version --bump minor
+   poetry version <version>        # e.g.: poetry version minor
    ```
    Then write `CHANGELOG/<version>.md`. See previous entries for the format.
 2. **Commit:**
    ```bash
-   git add pyproject.toml uv.lock CHANGELOG/
+   git add pyproject.toml poetry.lock CHANGELOG/
    git commit -m "Release <version>"
    ```
 3. **Release:**
