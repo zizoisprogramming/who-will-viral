@@ -1,7 +1,7 @@
 .PHONY: all acquire validate pipeline venv install freeze clean
 
 # Python command
-PYTHON = uv run python -m
+PYTHON = poetry run python -m
 
 # Files
 ACQUIRE = src.who_will_viral.acquire
@@ -38,7 +38,7 @@ visualize:
 
 # Run feature engineering
 feature:
-	uv run python $(FEATURE)
+	poetry run python $(FEATURE)
 
 train:
 	$(PYTHON) $(TRAIN)
@@ -48,10 +48,10 @@ train:
 pipeline: acquire validate clean validate_cleaned feature train
 
 install:
-	uv sync
+	poetry install
 
 freeze:
-	uv lock
+	poetry lock
 
 # Clean cache
 clean:
