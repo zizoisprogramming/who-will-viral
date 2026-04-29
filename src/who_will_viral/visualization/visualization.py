@@ -1,10 +1,9 @@
-import pandas as pd
-import numpy as np
+import os
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
 import seaborn as sns
-from datetime import timedelta
-from scipy import stats
-import os 
 from dotenv import load_dotenv
 
 load_dotenv()
