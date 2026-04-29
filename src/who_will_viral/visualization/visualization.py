@@ -116,7 +116,7 @@ if __name__ == "__main__":
     fig, axes = plt.subplots(nrows, ncols, figsize=(6 * ncols, 3.5 * nrows))
     axes = axes.flatten()
 
-    for i, col in enumerate(CATEGORICAL_COLUMNS, strict=True):
+    for i, col in enumerate(CATEGORICAL_COLUMNS):
         ax = axes[i]
         rate = (df.groupby(col)[TARGET_COLUMN].mean()
                 .sort_values(ascending=False)
