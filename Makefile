@@ -1,13 +1,14 @@
 .PHONY: all acquire validate pipeline venv install freeze clean
 
 # Python command
-PYTHON = uv run python -m
+PYTHON = poetry run python -m
 
 # Files
 ACQUIRE = src.who_will_viral.acquire
 VALIDATE = src.who_will_viral.validate
 CLEAN = src.who_will_viral.clean
 VALIDATE_CLEANED = src.who_will_viral.validation_cleaned
+VISUALIZE = src.who_will_viral.visualization.visualization 
 FEATURE = src/who_will_viral/feature_engineering.py
 TRAIN = src.who_will_viral.train
 
@@ -31,9 +32,13 @@ clean_data:
 validate_cleaned:
 	$(PYTHON) $(VALIDATE_CLEANED)
 
+# Run visualization
+visualize:
+	$(PYTHON) $(VISUALIZE)
+
 # Run feature engineering
 feature:
-	uv run python $(FEATURE)
+	poetry run python $(FEATURE)
 
 train:
 	$(PYTHON) $(TRAIN)
@@ -43,10 +48,10 @@ train:
 pipeline: acquire validate clean validate_cleaned feature train
 
 install:
-	uv sync
+	poetry install
 
 freeze:
-	uv lock
+	poetry lock
 
 # Clean cache
 clean:
@@ -59,6 +64,7 @@ help:
 	@echo "make validate  - Run validation only"
 	@echo "make clean_data     - Run cleaning only"
 	@echo "make validate_cleaned  - Run validation after cleaning only"
+	@echo "make visualize - Run visualization only"
 	@echo "make feature   - Run feature engineering only"
 	@echo "make train     - Run training only"
 	@echo "make venv      - Create virtual environment"
