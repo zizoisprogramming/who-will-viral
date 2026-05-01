@@ -3,29 +3,29 @@
 from unittest.mock import MagicMock, patch
 
 import numpy as np
-from src.who_will_viral.mlflow_utilities import run_experiment, setup_mlflow
+from src.who_will_viral.models.mlflow_utilities import run_experiment, setup_mlflow
 
 
 class TestMlflowUtilities:
     """Tests for mlflow utilities."""
 
-    @patch('who_will_viral.mlflow_utilities.mlflow.set_tracking_uri')
-    @patch('who_will_viral.mlflow_utilities.mlflow.set_experiment')
-    @patch('who_will_viral.mlflow_utilities.Path.mkdir')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.set_tracking_uri')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.set_experiment')
+    @patch('who_will_viral.models.mlflow_utilities.Path.mkdir')
     def test_setup_mlflow(self, mock_mkdir, mock_set_exp, mock_set_uri):
         """Test mlflow setup."""
         setup_mlflow()
         mock_set_uri.assert_called_once()
         mock_set_exp.assert_called_once()
 
-    @patch('who_will_viral.mlflow_utilities.mlflow.start_run')
-    @patch('who_will_viral.mlflow_utilities.mlflow.set_tags')
-    @patch('who_will_viral.mlflow_utilities.mlflow.log_params')
-    @patch('who_will_viral.mlflow_utilities.mlflow.log_metrics')
-    @patch('who_will_viral.mlflow_utilities.mlflow.sklearn.log_model')
-    @patch('who_will_viral.mlflow_utilities.mlflow.log_artifact')
-    @patch('who_will_viral.mlflow_utilities.plt.show')
-    @patch('who_will_viral.mlflow_utilities.plt.close')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.start_run')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.set_tags')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.log_params')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.log_metrics')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.sklearn.log_model')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.log_artifact')
+    @patch('who_will_viral.models.mlflow_utilities.plt.show')
+    @patch('who_will_viral.models.mlflow_utilities.plt.close')
     def test_run_experiment_with_best_params(
         self,
         mock_close,
@@ -60,14 +60,14 @@ class TestMlflowUtilities:
         assert 'f1' in metrics
         assert returned_model is model
 
-    @patch('who_will_viral.mlflow_utilities.mlflow.start_run')
-    @patch('who_will_viral.mlflow_utilities.mlflow.set_tags')
-    @patch('who_will_viral.mlflow_utilities.mlflow.log_params')
-    @patch('who_will_viral.mlflow_utilities.mlflow.log_metrics')
-    @patch('who_will_viral.mlflow_utilities.mlflow.sklearn.log_model')
-    @patch('who_will_viral.mlflow_utilities.mlflow.log_artifact')
-    @patch('who_will_viral.mlflow_utilities.plt.show')
-    @patch('who_will_viral.mlflow_utilities.plt.close')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.start_run')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.set_tags')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.log_params')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.log_metrics')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.sklearn.log_model')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.log_artifact')
+    @patch('who_will_viral.models.mlflow_utilities.plt.show')
+    @patch('who_will_viral.models.mlflow_utilities.plt.close')
     def test_run_experiment_without_predict_proba(
         self,
         mock_close,
@@ -100,14 +100,14 @@ class TestMlflowUtilities:
         assert metrics is not None
         assert metrics.get('roc_auc') is None
 
-    @patch('who_will_viral.mlflow_utilities.mlflow.start_run')
-    @patch('who_will_viral.mlflow_utilities.mlflow.set_tags')
-    @patch('who_will_viral.mlflow_utilities.mlflow.log_params')
-    @patch('who_will_viral.mlflow_utilities.mlflow.log_metrics')
-    @patch('who_will_viral.mlflow_utilities.mlflow.sklearn.log_model')
-    @patch('who_will_viral.mlflow_utilities.mlflow.log_artifact')
-    @patch('who_will_viral.mlflow_utilities.plt.show')
-    @patch('who_will_viral.mlflow_utilities.plt.close')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.start_run')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.set_tags')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.log_params')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.log_metrics')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.sklearn.log_model')
+    @patch('who_will_viral.models.mlflow_utilities.mlflow.log_artifact')
+    @patch('who_will_viral.models.mlflow_utilities.plt.show')
+    @patch('who_will_viral.models.mlflow_utilities.plt.close')
     def test_run_experiment_skip_fit(
         self,
         mock_close,
