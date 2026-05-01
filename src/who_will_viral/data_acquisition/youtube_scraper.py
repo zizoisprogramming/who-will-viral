@@ -56,8 +56,7 @@ class YoutubeScraper:
 
     def scrape_videos(self, video_ids: list[str]) -> pd.DataFrame:
         """
-        Main entry point. Accept a list of video IDs and return a DataFrame.
-        ✅ FIX 1: runs up to MAX_WORKERS videos in parallel.
+        Main entry point. Accept a list of video IDs and return a DataFrame of new features.
         """
         rows        = self.load_progress()
         scraped_ids = {row["video_id"] for row in rows}
@@ -70,7 +69,6 @@ class YoutubeScraper:
 
         unsaved_buf: list[dict] = []
 
-        # ✅ FIX 1: ThreadPoolExecutor replaces the sequential for-loop
         with ThreadPoolExecutor(max_workers=self.MAX_WORKERS) as pool:
             future_to_id = {
                 pool.submit(self._scrape_one_safe, vid): vid
@@ -80,7 +78,7 @@ class YoutubeScraper:
             with tqdm(total=len(pending)) as pbar:
                 for future in as_completed(future_to_id):
                     _ = future_to_id[future]
-                    result = future.result()   # always returns dict or None
+                    result = future.result()
                     pbar.update(1)
 
                     if result is None:
@@ -90,16 +88,14 @@ class YoutubeScraper:
                         rows.append(result)
                         unsaved_buf.append(result)
 
-                        # ✅ FIX 5: save incrementally under the lock
                         if len(unsaved_buf) >= self.SAVE_INTERVAL:
                             self.save_progress(unsaved_buf, "progress.txt")
                             unsaved_buf = []
 
-        # flush remainder
         if unsaved_buf:
             self.save_progress(unsaved_buf, "progress.txt")
 
-        df = pd.DataFrame(rows)
+        df = pd.DataFrame(rows).drop_duplicates(subset=["video_id"])
         self.export_data(df, "videos")
         self.logger.info(f"Total scraped: {len(df)} videos")
         return df
@@ -387,23 +383,23 @@ class YoutubeScraper:
         except Exception as e:
             self.logger.error(f"Failed to save progress: {e}")
 
-    def load_progress(self, filename="progress.txt"):
+    def load_progress(self, filename="progress.txt") -> list[dict]:
         filepath = os.path.join(self.output_dir, filename)
-        try:
-            videos = []
-            with open(filepath) as f:
-                for line in f:
-                    line = line.strip()
-                    if line:
-                        videos.append(json.loads(line))
-            self.logger.info(f"Loaded {len(videos)} rows from {filepath}")
-            return videos
-        except FileNotFoundError:
-            self.logger.warning(f"No progress file at {filepath}")
+        if not os.path.exists(filepath):
             return []
-        except Exception as e:
-            self.logger.warning(f"Failed to load progress: {e}")
-            return []
+        
+        seen = {}
+        with open(filepath, "r") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    try:
+                        row = json.loads(line)
+                        seen[row["video_id"]] = row 
+                    except json.JSONDecodeError:
+                        pass
+        
+        return list(seen.values())
 
     def export_data(self, videos, base_filename="videos"):
         try:
