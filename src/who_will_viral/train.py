@@ -319,17 +319,17 @@ class ModelTrainer:
 if __name__ == '__main__':
 	if not os.getenv('CI'):
 		trainer = ModelTrainer(
-			train_path='./data/youtube/scaled_train.csv',
-			val_path='./data/youtube/scaled_val.csv',
-			test_path='./data/youtube/scaled_test.csv',
+			train_path=os.getenv("TRAIN_PATH"),
+			val_path=os.getenv("VAL_PATH"),
+			test_path=os.getenv("TEST_PATH"),
 		)
 		print('Starting training with different sampling techniques and models...')
-		# trainer.train_knn(sampling='smote')
-		# trainer.train_ada(sampling='smote')
-		# trainer.train_gaussian_nb(sampling='smote')
-		# trainer.train_svc(sampling='balanced')
-		# trainer.train_random_forest(sampling='balanced')
-		# trainer.train_logistic_regression(sampling='balanced')
+		trainer.train_knn(sampling='smote')
+		trainer.train_ada(sampling='smote')
+		trainer.train_gaussian_nb(sampling='smote')
+		trainer.train_svc(sampling='balanced')
+		trainer.train_random_forest(sampling='balanced')
+		trainer.train_logistic_regression(sampling='balanced')
 		trainer.train_XGBoost(sampling='balanced')
 		print(f'Best Model: {trainer.best_model_name} with macro F1 Score: {trainer.best_f1:.4f}')
 		report = trainer.get_test_report()
