@@ -1,0 +1,84 @@
+=================================================================
+  GREAT EXPECTATIONS REPORT  (v1.x)
+=================================================================
+  Overall : FAILED
+=================================================================
+
+  [PASS]  expect_column_values_to_not_be_null
+             Column : video_id
+
+  [FAIL]  expect_column_values_to_be_unique
+             Column : video_id
+             Issues : 270947 unexpected values
+             Sample : ['G4M_621v1As', '8a2wyZaBfNc', 'AbvoX0SRqIo']
+
+  [PASS]  expect_column_value_lengths_to_be_between
+             Column : video_id
+
+  [PASS]  expect_column_values_to_not_be_null
+             Column : title
+
+  [FAIL]  expect_column_values_to_not_be_null
+             Column : view_count
+             Issues : 23 unexpected values
+             Sample : [nan, nan, nan]
+
+  [PASS]  expect_column_values_to_be_between
+             Column : view_count
+
+  [PASS]  expect_column_median_to_be_between
+             Column : view_count
+
+  [FAIL]  expect_column_values_to_not_be_null
+             Column : likes
+             Issues : 145 unexpected values
+             Sample : [nan, nan, nan]
+
+  [PASS]  expect_column_values_to_be_between
+             Column : likes
+
+  [PASS]  expect_column_values_to_not_be_null
+             Column : publishedAt
+
+  [PASS]  expect_column_values_to_match_regex
+             Column : publishedAt
+
+  [PASS]  expect_column_values_to_not_be_null
+             Column : channelId
+
+  [PASS]  expect_column_values_to_not_be_null
+             Column : is_trending
+
+  [PASS]  expect_column_values_to_be_between
+             Column : comment_count
+
+  [PASS]  expect_column_values_to_be_between
+             Column : favoriteCount
+
+  [PASS]  expect_column_values_to_be_between
+             Column : categoryId
+
+  [PASS]  expect_column_values_to_match_regex
+             Column : duration
+
+  [FAIL]  expect_compound_columns_to_be_unique
+             Column : table-level
+             Issues : 9410 unexpected values
+             Sample : [{'video_id': 'myffQg17q18', 'title': 'Apa❗Chainsawman Emak ❗Begini Cara Buatnya❗#editing #tutorial', 'publishedAt': '2025-06-06T06:55:17Z', 'channelId': 'UCTCguaYwB9n_GDni3a1jCTg', 'channelTitle': 'Fun Tutorial', 'categoryId': 22.0, 'trending_date': nan, 'tags': '#editing #tutorial #ilustrasi #hantu #emak #chainsawman, #wow #apa #virall #aneh #seram, #aa #bb #cc #dd #ee, #a #b #c #d #e', 'view_count': 46092.0, 'likes': 432.0, 'comment_count': 1.0, 'thumbnail_link': 'https://i.ytimg.com/vi/myffQg17q18/default.jpg', 'description': 'video ini hanya sekedar editing tutorial untuk foto aja gaess jadi jangan pernah baper, subscribe channel YouTube irfan4official ...', 'is_trending': 0, 'defaultLanguage': 'id', 'duration': 'PT56S', 'dimension': '2d', 'definition': 'hd', 'caption': False, 'licensedContent': True, 'projection': 'rectangular', 'embeddable': True, 'madeForKids': False, 'favoriteCount': 0.0, 'contentDetails.regionRestriction.blocked': nan, 'contentDetails.regionRestriction.allowed': nan, 'contentDetails.contentRating.ytRating': nan, 'chapter_count': 0.0, 'chapters': '[]', 'playability_status': 'UNPLAYABLE', 'supports_miniplayer': True, 'card_count': 0.0, 'cards': '[]', 'is_verified': True, 'badge_labels': "['تم إثبات الملكية']", 'has_paid_promotion': False, 'comments_disabled': 'False'}, {'video_id': 'A1hFIVOEcUU', 'title': 'Mystery Science Theater 3000: The Shape of Things to Come', 'publishedAt': '2023-09-22T04:00:04Z', 'channelId': 'UCuVPpxrm2VAgpH3Ktln4HXg', 'channelTitle': 'YouTube Movies', 'categoryId': 30.0, 'trending_date': nan, 'tags': nan, 'view_count': 0.0, 'likes': 347.0, 'comment_count': 77.0, 'thumbnail_link': 'https://i.ytimg.com/vi/A1hFIVOEcUU/default.jpg', 'description': "Emily's crew watch three humans and their robot friend defend the moon colonies in H.G. Well's THE SHAPE OF THINGS TO ...", 'is_trending': 0, 'defaultLanguage': 'en', 'duration': 'PT1H37M9S', 'dimension': '2d', 'definition': 'hd', 'caption': True, 'licensedContent': True, 'projection': 'rectangular', 'embeddable': True, 'madeForKids': False, 'favoriteCount': 0.0, 'contentDetails.regionRestriction.blocked': nan, 'contentDetails.regionRestriction.allowed': "['US']", 'contentDetails.contentRating.ytRating': nan, 'chapter_count': 0.0, 'chapters': '[]', 'playability_status': 'UNPLAYABLE', 'supports_miniplayer': False, 'card_count': 0.0, 'cards': '[]', 'is_verified': True, 'badge_labels': "['تم إثبات الملكية']", 'has_paid_promotion': False, 'comments_disabled': 'True'}, {'video_id': 'LG6bWCFgXfc', 'title': 'গ্রামের #গ্রাম_বাংলার_রূপ #nature #foryou', 'publishedAt': '2025-04-23T14:07:30Z', 'channelId': 'UC5zxoRjm5yy-LdmYFhw2MuA', 'channelTitle': 'Dark Secret', 'categoryId': 22.0, 'trending_date': nan, 'tags': nan, 'view_count': 9.0, 'likes': 1.0, 'comment_count': 0.0, 'thumbnail_link': 'https://i.ytimg.com/vi/LG6bWCFgXfc/default.jpg', 'description': nan, 'is_trending': 0, 'defaultLanguage': 'bn', 'duration': 'PT26S', 'dimension': '2d', 'definition': 'hd', 'caption': False, 'licensedContent': False, 'projection': 'rectangular', 'embeddable': True, 'madeForKids': False, 'favoriteCount': 0.0, 'contentDetails.regionRestriction.blocked': nan, 'contentDetails.regionRestriction.allowed': nan, 'contentDetails.contentRating.ytRating': 'ytAgeRestricted', 'chapter_count': 0.0, 'chapters': '[]', 'playability_status': 'LOGIN_REQUIRED', 'supports_miniplayer': False, 'card_count': 0.0, 'cards': '[]', 'is_verified': False, 'badge_labels': '[]', 'has_paid_promotion': False, 'comments_disabled': 'False'}]
+
+  [PASS]  expect_table_columns_to_match_set
+             Column : table-level
+
+  [PASS]  expect_table_row_count_to_be_between
+             Column : table-level
+
+  [PASS]  expect_column_values_to_be_in_set
+             Column : dimension
+
+  [PASS]  expect_column_values_to_be_in_set
+             Column : definition
+
+  [PASS]  expect_column_values_to_be_in_set
+             Column : projection
+
+=================================================================
