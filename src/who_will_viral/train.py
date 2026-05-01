@@ -14,10 +14,17 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.svm import LinearSVC
 from xgboost import XGBClassifier
 
-from who_will_viral.mlflow_utilities import run_experiment, setup_mlflow
+from who_will_viral.models.mlflow_utilities import run_experiment, setup_mlflow
+
+import pickle
+import re
+from dotenv import load_dotenv
+
+load_dotenv()
+RESULT_PATH = os.getenv("RESULT_PATH")
+os.makedirs(RESULT_PATH, exist_ok=True)
 
 warnings.filterwarnings('ignore')
-
 
 class ModelTrainer:
 	def __init__(self, train_path, val_path, test_path, cv=5):
@@ -270,23 +277,59 @@ class ModelTrainer:
 		report = classification_report(self.y_test, y_pred)
 		print(f'Test Report for Best Model: {self.best_model_name}')
 		print(report)
+		file_path = os.path.join(RESULT_PATH, f"{self.best_model_name}_report.txt")
+
+		with open(file_path, "w", encoding="utf-8") as f:
+			f.write(f"Model: {self.best_model_name}\n\n")
+			f.write(report)
+		
+		self.save_best_model()
 		return report
+	
+	def save_best_model(self):
+		if self.best_model is None:
+			print('No model has been trained yet!')
+			return None
+
+		MODEL_PATH = os.getenv("MODEL_PATH")
+		os.makedirs(MODEL_PATH, exist_ok=True)
+
+		# Find the next available version number
+		model_base_name = self.best_model_name.replace(" ", "_")
+		existing = [
+			f for f in os.listdir(MODEL_PATH)
+			if re.match(rf"^{re.escape(model_base_name)}_v\d+\.pkl$", f)
+		]
+		if existing:
+			versions = [int(re.search(r'_v(\d+)\.pkl$', f).group(1)) for f in existing]
+			next_version = max(versions) + 1
+		else:
+			next_version = 1
+
+		filename = f"{model_base_name}_v{next_version}.pkl"
+		file_path = os.path.join(MODEL_PATH, filename)
+
+		with open(file_path, "wb") as f:
+			pickle.dump(self.best_model, f)
+
+		print(f"Best model saved to: {file_path}")
+		return file_path
 
 
 if __name__ == '__main__':
 	if not os.getenv('CI'):
 		trainer = ModelTrainer(
-			train_path='../../data/youtube/scaled_train.csv',
-			val_path='../../data/youtube/scaled_val.csv',
-			test_path='../../data/youtube/scaled_test.csv',
+			train_path='./data/youtube/scaled_train.csv',
+			val_path='./data/youtube/scaled_val.csv',
+			test_path='./data/youtube/scaled_test.csv',
 		)
 		print('Starting training with different sampling techniques and models...')
-		trainer.train_knn(sampling='smote')
-		trainer.train_ada(sampling='smote')
-		trainer.train_gaussian_nb(sampling='smote')
-		trainer.train_svc(sampling='balanced')
-		trainer.train_random_forest(sampling='balanced')
-		trainer.train_logistic_regression(sampling='balanced')
+		# trainer.train_knn(sampling='smote')
+		# trainer.train_ada(sampling='smote')
+		# trainer.train_gaussian_nb(sampling='smote')
+		# trainer.train_svc(sampling='balanced')
+		# trainer.train_random_forest(sampling='balanced')
+		# trainer.train_logistic_regression(sampling='balanced')
 		trainer.train_XGBoost(sampling='balanced')
 		print(f'Best Model: {trainer.best_model_name} with macro F1 Score: {trainer.best_f1:.4f}')
 		report = trainer.get_test_report()

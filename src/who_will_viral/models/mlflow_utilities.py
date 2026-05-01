@@ -13,10 +13,18 @@ from sklearn.metrics import (
 	roc_auc_score,
 )
 
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+RESULT_PATH = os.getenv("RESULT_PATH")
+os.makedirs(RESULT_PATH, exist_ok=True)
+
 BASE_DIR = Path(__file__).resolve().parent  # models/
 
 MLFLOW_TRACKING_URI = BASE_DIR / 'mlruns'
 EXPERIMENT_NAME = 'youtube-viral'
+
 
 
 def setup_mlflow():
@@ -64,6 +72,7 @@ def run_experiment(run_name, model, X_tr, y_tr, X_ev, y_ev, params=None, tags=No
 	ConfusionMatrixDisplay(confusion_matrix(y_ev, y_pred)).plot(ax=ax, colorbar=False)
 	ax.set_title(run_name, fontsize=10)
 	plt.tight_layout()
+	plt.savefig(os.path.join(RESULT_PATH, 'time_vs_target.png'))
 	plt.show()
 
 	# track experiments
@@ -76,7 +85,6 @@ def run_experiment(run_name, model, X_tr, y_tr, X_ev, y_ev, params=None, tags=No
 		mlflow.sklearn.log_model(model, 'model')
 		fig2, ax2 = plt.subplots(figsize=(4, 3))
 		ConfusionMatrixDisplay(confusion_matrix(y_ev, y_pred)).plot(ax=ax2, colorbar=False)
-		fig2.savefig('_cm_tmp.png', dpi=100, bbox_inches='tight')  # save confusion matrix plot
 		mlflow.log_artifact('_cm_tmp.png', artifact_path='plots')  # save in mlflow
 		plt.close(fig2)
 
