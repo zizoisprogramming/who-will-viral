@@ -1,12 +1,11 @@
 import ast
 import json
+import os
 from datetime import datetime
 from itertools import groupby
 
 import numpy as np
 import pandas as pd
-
-import os
 from dotenv import load_dotenv
 
 load_dotenv()
