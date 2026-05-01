@@ -85,7 +85,6 @@ def run_experiment(run_name, model, X_tr, y_tr, X_ev, y_ev, params=None, tags=No
 		mlflow.sklearn.log_model(model, 'model')
 		fig2, ax2 = plt.subplots(figsize=(4, 3))
 		ConfusionMatrixDisplay(confusion_matrix(y_ev, y_pred)).plot(ax=ax2, colorbar=False)
-		mlflow.log_artifact('_cm_tmp.png', artifact_path='plots')  # save in mlflow
 		plt.close(fig2)
 
 	return metrics, model
