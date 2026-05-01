@@ -46,6 +46,10 @@ jobs:
           echo "SCALED_TRAIN_PATH=dummy.csv" >> .env
           echo "SCALED_VAL_PATH=dummy.csv" >> .env
           echo "SCALED_TEST_PATH=dummy.csv" >> .env
+          echo "FIGURES_PATH=./reports/figures" >> .env
+          echo "VALIDATION_PATH=./reports/validation" >> .env
+          echo "RESULT_PATH=./reports/results" >> .env
+          echo "MODEL_PATH=./models" >> .env
       - name: Run Pytest with Coverage
         # Fails the build if coverage is below a certain threshold (optional, adjust as needed)
         run: pytest tests/ --cov=src/who_will_viral/ --cov-report=xml --cov-report=term-missing
@@ -78,6 +82,10 @@ jobs:
           echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv" >> .env
           echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"  >> .env
           echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv" >> .env
+          echo "FIGURES_PATH=./reports/figures" >> .env
+          echo "VALIDATION_PATH=./reports/validation" >> .env
+          echo "RESULT_PATH=./reports/results" >> .env
+          echo "MODEL_PATH=./models" >> .env
       - name: Create data directories
         run: mkdir -p data/youtube data/raw
       - name: Download base CSV from Google Drive
@@ -118,6 +126,10 @@ jobs:
           echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv" >> .env
           echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"  >> .env
           echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv" >> .env
+          echo "FIGURES_PATH=./reports/figures" >> .env
+          echo "VALIDATION_PATH=./reports/validation" >> .env
+          echo "RESULT_PATH=./reports/results" >> .env
+          echo "MODEL_PATH=./models" >> .env
       - name: Create data directories
         run: mkdir -p data/youtube
       - uses: actions/download-artifact@v4
@@ -158,6 +170,10 @@ jobs:
           echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv" >> .env
           echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"  >> .env
           echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv" >> .env
+          echo "FIGURES_PATH=./reports/figures" >> .env
+          echo "VALIDATION_PATH=./reports/validation" >> .env
+          echo "RESULT_PATH=./reports/results" >> .env
+          echo "MODEL_PATH=./models" >> .env
       - name: Create data directories
         run: mkdir -p data/youtube
       - uses: actions/download-artifact@v4
@@ -194,6 +210,10 @@ jobs:
           echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv" >> .env
           echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"  >> .env
           echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv" >> .env
+          echo "FIGURES_PATH=./reports/figures" >> .env
+          echo "VALIDATION_PATH=./reports/validation" >> .env
+          echo "RESULT_PATH=./reports/results" >> .env
+          echo "MODEL_PATH=./models" >> .env
       - name: Create data directories
         run: mkdir -p data/youtube
       - uses: actions/download-artifact@v4
@@ -234,6 +254,10 @@ jobs:
           echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv" >> .env
           echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"  >> .env
           echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv" >> .env
+          echo "FIGURES_PATH=./reports/figures" >> .env
+          echo "VALIDATION_PATH=./reports/validation" >> .env
+          echo "RESULT_PATH=./reports/results" >> .env
+          echo "MODEL_PATH=./models" >> .env
       - name: Create data directories
         run: mkdir -p data/youtube
       - uses: actions/download-artifact@v4

@@ -318,9 +318,9 @@ class ModelTrainer:
 if __name__ == '__main__':
     if not os.getenv('CI'):
         trainer = ModelTrainer(
-            train_path=os.getenv("TRAIN_PATH"),
-            val_path=os.getenv("VAL_PATH"),
-            test_path=os.getenv("TEST_PATH"),
+            train_path=os.getenv("SCALED_TRAIN_PATH"),
+            val_path=os.getenv("SCALED_VAL_PATH"),
+            test_path=os.getenv("SCALED_TEST_PATH"),
         )
         print('Starting training with different sampling techniques and models...')
         trainer.train_knn(sampling='smote')
