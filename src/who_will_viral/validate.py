@@ -236,30 +236,6 @@ def run_gx_validation(df: pd.DataFrame):
 
     return results
 
-
-def _print_gx_report(results):
-    print("\n" + "=" * 65)
-    print("  GREAT EXPECTATIONS REPORT  (v1.x)")
-    print("=" * 65)
-    print(f"  Overall : {'PASSED' if results.success else 'FAILED'}")
-    print("=" * 65)
-
-    for exp in results.results:
-        exp_type = exp.expectation_config.type
-        col = exp.expectation_config.kwargs.get("column", "table-level")
-        status = "PASS" if exp.success else "FAIL"
-        print(f"\n  [{status}]  {exp_type}")
-        print(f"             Column : {col}")
-        if not exp.success and exp.result:
-            r = exp.result
-            if r.get("unexpected_count"):
-                print(f"             Issues : {r['unexpected_count']} unexpected values")
-            if r.get("partial_unexpected_list"):
-                print(f"             Sample : {r['partial_unexpected_list'][:3]}")
-
-    print("\n" + "=" * 65)
-
-
 class DataValidator:
     def __init__(self):
         self.validation_results = []
