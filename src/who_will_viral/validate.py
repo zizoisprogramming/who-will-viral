@@ -9,7 +9,7 @@ import pandas as pd
 from dotenv import load_dotenv
 
 load_dotenv()
-VALIDATION_PATH = os.getenv("VALIDATION_PATH")
+VALIDATION_PATH = os.getenv("VALIDATION_PATH", "./reports/validation/")
 os.makedirs(VALIDATION_PATH, exist_ok=True)
 
 
