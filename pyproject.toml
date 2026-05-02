@@ -53,6 +53,10 @@ build-backend = "poetry.core.masonry.api"
 [tool.ruff]
 line-length = 120
 
+[tool.ruff.format]
+indent-style = "tab"
+quote-style = "single"
+
 [tool.ruff.lint]
 select = ["E", "W", "F", "I", "B", "UP"]
 

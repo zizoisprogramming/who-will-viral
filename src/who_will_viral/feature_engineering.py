@@ -9,15 +9,15 @@ from who_will_viral.feature_engineering.feature_selection import FeatureSelectio
 
 load_dotenv()
 
+
 class FeatureEngineering:
     def __init__(self):
-        self.cleaned_path = os.getenv("CLEANED_PATH")
-        self.train_path = os.getenv("TRAIN_PATH")
-        self.val_path = os.getenv("VAL_PATH")
-        self.test_path = os.getenv("TEST_PATH")
+        self.cleaned_path = os.getenv('CLEANED_PATH')
+        self.train_path = os.getenv('TRAIN_PATH')
+        self.val_path = os.getenv('VAL_PATH')
+        self.test_path = os.getenv('TEST_PATH')
 
         self.df = pd.read_csv(self.cleaned_path, keep_default_na=False)
-
 
     def run(self):
 
@@ -30,6 +30,7 @@ class FeatureEngineering:
         feature_scaling = FeatureScaling(self.train_path, self.val_path, self.test_path)
         feature_scaling.run()
 
-if __name__ == "__main__":
-    print("Running feature engineering...")
+
+if __name__ == '__main__':
+    print('Running feature engineering...')
     FeatureEngineering().run()
