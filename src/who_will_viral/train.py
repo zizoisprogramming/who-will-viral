@@ -20,7 +20,7 @@ from xgboost import XGBClassifier
 from who_will_viral.models.mlflow_utilities import run_experiment, setup_mlflow
 
 load_dotenv()
-RESULT_PATH = os.getenv("RESULT_PATH")
+RESULT_PATH = os.getenv("RESULT_PATH",'./reports/results/')
 os.makedirs(RESULT_PATH, exist_ok=True)
 
 warnings.filterwarnings('ignore')
@@ -318,9 +318,9 @@ class ModelTrainer:
 if __name__ == '__main__':
     if not os.getenv('CI'):
         trainer = ModelTrainer(
-            train_path=os.getenv("SCALED_TRAIN_PATH"),
-            val_path=os.getenv("SCALED_VAL_PATH"),
-            test_path=os.getenv("SCALED_TEST_PATH"),
+            train_path=os.getenv("SCALED_TRAIN_PATH","./data/youtube/scaled_train.csv"),
+            val_path=os.getenv("SCALED_VAL_PATH",'./data/youtube/scaled_val.csv'),
+            test_path=os.getenv("SCALED_TEST_PATH",'./data/youtube/scaled_test.csv'),
         )
         print('Starting training with different sampling techniques and models...')
         trainer.train_knn(sampling='smote')

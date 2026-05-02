@@ -16,7 +16,7 @@ from sklearn.metrics import (
 )
 
 load_dotenv()
-RESULT_PATH = os.getenv("RESULT_PATH")
+RESULT_PATH = os.getenv("RESULT_PATH",'./reports/results/')
 os.makedirs(RESULT_PATH, exist_ok=True)
 
 BASE_DIR = Path(__file__).resolve().parent  # models/
