@@ -3,6 +3,7 @@
 from unittest.mock import MagicMock, patch
 
 import numpy as np
+
 from src.who_will_viral.models.mlflow_utilities import run_experiment, setup_mlflow
 
 

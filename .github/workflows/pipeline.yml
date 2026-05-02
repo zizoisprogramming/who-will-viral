@@ -33,29 +33,27 @@ jobs:
       - run: pip install -r requirements.txt
       - run: pip install -e .
       - run: pip install pytest pytest-cov pytest-mock python-dotenv
-      # Provide dummy environment variables so instantiation doesn't fail
       - name: Create Test .env file
         run: |
-          echo "YOUTUBE_API_KEY=dummy_key" >> .env
-          echo "HF_TOKEN=dummy_token" >> .env
-          echo "MERGED_PATH=dummy.csv" >> .env
-          echo "CLEANED_PATH=dummy.csv" >> .env
-          echo "TRAIN_PATH=dummy.csv" >> .env
-          echo "VAL_PATH=dummy.csv" >> .env
-          echo "TEST_PATH=dummy.csv" >> .env
-          echo "SCALED_TRAIN_PATH=dummy.csv" >> .env
-          echo "SCALED_VAL_PATH=dummy.csv" >> .env
-          echo "SCALED_TEST_PATH=dummy.csv" >> .env
-          echo "FIGURES_PATH=./reports/figures" >> .env
-          echo "VALIDATION_PATH=./reports/validation" >> .env
-          echo "RESULT_PATH=./reports/results" >> .env
-          echo "MODEL_PATH=./models" >> .env
+          echo "YOUTUBE_API_KEY=dummy_key"              >> .env
+          echo "HF_TOKEN=dummy_token"                   >> .env
+          echo "MERGED_PATH=dummy.csv"                  >> .env
+          echo "CLEANED_PATH=dummy.csv"                 >> .env
+          echo "TRAIN_PATH=dummy.csv"                   >> .env
+          echo "VAL_PATH=dummy.csv"                     >> .env
+          echo "TEST_PATH=dummy.csv"                    >> .env
+          echo "SCALED_TRAIN_PATH=dummy.csv"            >> .env
+          echo "SCALED_VAL_PATH=dummy.csv"              >> .env
+          echo "SCALED_TEST_PATH=dummy.csv"             >> .env
+          echo "FIGURES_PATH=./reports/figures"         >> .env
+          echo "VALIDATION_PATH=./reports/validation"   >> .env
+          echo "RESULT_PATH=./reports/results"          >> .env
+          echo "MODEL_PATH=./models"                    >> .env
       - name: Run Pytest with Coverage
-        # Fails the build if coverage is below a certain threshold (optional, adjust as needed)
         run: pytest tests/ --cov=src/who_will_viral/ --cov-report=xml --cov-report=term-missing
 
   validate:
-    needs: [test]  # Now waits for tests to pass
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -65,32 +63,37 @@ jobs:
           cache: 'pip'
       - run: pip install -r requirements.txt
       - run: pip install -e .
-      - run: pip install gdown dotenv
+      - run: pip install gdown python-dotenv        # ← fixed: was "dotenv"
       - name: Create .env file
         run: |
-          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
-          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
-          echo "OUTPUT_CSV=./data/youtube/youtube_enriched.csv" >> .env
-          echo "BACKUP_DIR=./data/youtube/backup"               >> .env
-          echo "HF_TOKEN=${{ secrets.HF_TOKEN }}"               >> .env
-          echo "CLEANED_PATH=./data/youtube/cleaned_dataset.csv" >> .env
-          echo "MERGED_PATH=./data/youtube/dataset.csv"         >> .env
-          echo "EXTRACTED_PATH=./data/youtube/extracted.csv"    >> .env
-          echo "TRAIN_PATH=./data/youtube/train.csv"            >> .env
-          echo "VAL_PATH=./data/youtube/val.csv"                >> .env
-          echo "TEST_PATH=./data/youtube/test.csv"              >> .env
-          echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv" >> .env
-          echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"  >> .env
-          echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv" >> .env
-          echo "FIGURES_PATH=./reports/figures" >> .env
-          echo "VALIDATION_PATH=./reports/validation" >> .env
-          echo "RESULT_PATH=./reports/results" >> .env
-          echo "MODEL_PATH=./models" >> .env
+          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}"          >> .env
+          echo "BASE_CSV=./data/youtube/youtube.csv"                      >> .env
+          echo "OUTPUT_CSV=./data/youtube/youtube_enriched.csv"           >> .env
+          echo "BACKUP_DIR=./data/youtube/backup"                         >> .env
+          echo "HF_TOKEN=${{ secrets.HF_TOKEN }}"                         >> .env
+          echo "CLEANED_PATH=./data/youtube/cleaned_dataset.csv"          >> .env
+          echo "MERGED_PATH=./data/youtube/dataset.csv"                   >> .env
+          echo "EXTRACTED_PATH=./data/youtube/extracted.csv"              >> .env
+          echo "TRAIN_PATH=./data/youtube/train.csv"                      >> .env
+          echo "VAL_PATH=./data/youtube/val.csv"                          >> .env
+          echo "TEST_PATH=./data/youtube/test.csv"                        >> .env
+          echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv"        >> .env
+          echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"            >> .env
+          echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv"          >> .env
+          echo "FIGURES_PATH=./reports/figures"                           >> .env
+          echo "VALIDATION_PATH=./reports/validation"                     >> .env
+          echo "RESULT_PATH=./reports/results"                            >> .env
+          echo "MODEL_PATH=./models"                                      >> .env
       - name: Create data directories
         run: mkdir -p data/youtube data/raw
       - name: Download base CSV from Google Drive
         run: gdown ${{ secrets.MERGED_PATH_DRIVE }} -O data/youtube/youtube.rar
-      - run: sudo apt-get install -y unrar
+      - name: Install unrar with fallback          # ← fixed: added retry + fallback
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y unrar || \
+          sudo apt-get install -y --fix-missing unrar || \
+          sudo apt-get install -y unrar-free
       - run: unrar x data/youtube/youtube.rar data/youtube/
       - run: python src/who_will_viral/validate.py
       - uses: actions/upload-artifact@v4
@@ -109,27 +112,27 @@ jobs:
           cache: 'pip'
       - run: pip install -r requirements.txt
       - run: pip install -e .
-      - run: pip install dotenv
+      - run: pip install python-dotenv                # ← fixed: was "dotenv"
       - name: Create .env file
         run: |
-          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
-          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
-          echo "OUTPUT_CSV=./data/youtube/youtube_enriched.csv" >> .env
-          echo "BACKUP_DIR=./data/youtube/backup"               >> .env
-          echo "HF_TOKEN=${{ secrets.HF_TOKEN }}"               >> .env
-          echo "CLEANED_PATH=./data/youtube/cleaned_dataset.csv" >> .env
-          echo "MERGED_PATH=./data/youtube/dataset.csv"         >> .env
-          echo "EXTRACTED_PATH=./data/youtube/extracted.csv"    >> .env
-          echo "TRAIN_PATH=./data/youtube/train.csv"            >> .env
-          echo "VAL_PATH=./data/youtube/val.csv"                >> .env
-          echo "TEST_PATH=./data/youtube/test.csv"              >> .env
-          echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv" >> .env
-          echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"  >> .env
-          echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv" >> .env
-          echo "FIGURES_PATH=./reports/figures" >> .env
-          echo "VALIDATION_PATH=./reports/validation" >> .env
-          echo "RESULT_PATH=./reports/results" >> .env
-          echo "MODEL_PATH=./models" >> .env
+          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}"          >> .env
+          echo "BASE_CSV=./data/youtube/youtube.csv"                      >> .env
+          echo "OUTPUT_CSV=./data/youtube/youtube_enriched.csv"           >> .env
+          echo "BACKUP_DIR=./data/youtube/backup"                         >> .env
+          echo "HF_TOKEN=${{ secrets.HF_TOKEN }}"                         >> .env
+          echo "CLEANED_PATH=./data/youtube/cleaned_dataset.csv"          >> .env
+          echo "MERGED_PATH=./data/youtube/dataset.csv"                   >> .env
+          echo "EXTRACTED_PATH=./data/youtube/extracted.csv"              >> .env
+          echo "TRAIN_PATH=./data/youtube/train.csv"                      >> .env
+          echo "VAL_PATH=./data/youtube/val.csv"                          >> .env
+          echo "TEST_PATH=./data/youtube/test.csv"                        >> .env
+          echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv"        >> .env
+          echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"            >> .env
+          echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv"          >> .env
+          echo "FIGURES_PATH=./reports/figures"                           >> .env
+          echo "VALIDATION_PATH=./reports/validation"                     >> .env
+          echo "RESULT_PATH=./reports/results"                            >> .env
+          echo "MODEL_PATH=./models"                                      >> .env
       - name: Create data directories
         run: mkdir -p data/youtube
       - uses: actions/download-artifact@v4
@@ -153,27 +156,27 @@ jobs:
           cache: 'pip'
       - run: pip install -r requirements.txt
       - run: pip install -e .
-      - run: pip install dotenv
+      - run: pip install python-dotenv                # ← fixed: was "dotenv"
       - name: Create .env file
         run: |
-          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
-          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
-          echo "OUTPUT_CSV=./data/youtube/youtube_enriched.csv" >> .env
-          echo "BACKUP_DIR=./data/youtube/backup"               >> .env
-          echo "HF_TOKEN=${{ secrets.HF_TOKEN }}"               >> .env
-          echo "CLEANED_PATH=./data/youtube/cleaned_dataset.csv" >> .env
-          echo "MERGED_PATH=./data/youtube/dataset.csv"         >> .env
-          echo "EXTRACTED_PATH=./data/youtube/extracted.csv"    >> .env
-          echo "TRAIN_PATH=./data/youtube/train.csv"            >> .env
-          echo "VAL_PATH=./data/youtube/val.csv"                >> .env
-          echo "TEST_PATH=./data/youtube/test.csv"              >> .env
-          echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv" >> .env
-          echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"  >> .env
-          echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv" >> .env
-          echo "FIGURES_PATH=./reports/figures" >> .env
-          echo "VALIDATION_PATH=./reports/validation" >> .env
-          echo "RESULT_PATH=./reports/results" >> .env
-          echo "MODEL_PATH=./models" >> .env
+          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}"          >> .env
+          echo "BASE_CSV=./data/youtube/youtube.csv"                      >> .env
+          echo "OUTPUT_CSV=./data/youtube/youtube_enriched.csv"           >> .env
+          echo "BACKUP_DIR=./data/youtube/backup"                         >> .env
+          echo "HF_TOKEN=${{ secrets.HF_TOKEN }}"                         >> .env
+          echo "CLEANED_PATH=./data/youtube/cleaned_dataset.csv"          >> .env
+          echo "MERGED_PATH=./data/youtube/dataset.csv"                   >> .env
+          echo "EXTRACTED_PATH=./data/youtube/extracted.csv"              >> .env
+          echo "TRAIN_PATH=./data/youtube/train.csv"                      >> .env
+          echo "VAL_PATH=./data/youtube/val.csv"                          >> .env
+          echo "TEST_PATH=./data/youtube/test.csv"                        >> .env
+          echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv"        >> .env
+          echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"            >> .env
+          echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv"          >> .env
+          echo "FIGURES_PATH=./reports/figures"                           >> .env
+          echo "VALIDATION_PATH=./reports/validation"                     >> .env
+          echo "RESULT_PATH=./reports/results"                            >> .env
+          echo "MODEL_PATH=./models"                                      >> .env
       - name: Create data directories
         run: mkdir -p data/youtube
       - uses: actions/download-artifact@v4
@@ -193,27 +196,27 @@ jobs:
           cache: 'pip'
       - run: pip install -r requirements.txt
       - run: pip install -e .
-      - run: pip install dotenv
+      - run: pip install python-dotenv                # ← fixed: was "dotenv"
       - name: Create .env file
         run: |
-          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
-          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
-          echo "OUTPUT_CSV=./data/youtube/youtube_enriched.csv" >> .env
-          echo "BACKUP_DIR=./data/youtube/backup"               >> .env
-          echo "HF_TOKEN=${{ secrets.HF_TOKEN }}"               >> .env
-          echo "CLEANED_PATH=./data/youtube/cleaned_dataset.csv" >> .env
-          echo "MERGED_PATH=./data/youtube/dataset.csv"         >> .env
-          echo "EXTRACTED_PATH=./data/youtube/extracted.csv"    >> .env
-          echo "TRAIN_PATH=./data/youtube/train.csv"            >> .env
-          echo "VAL_PATH=./data/youtube/val.csv"                >> .env
-          echo "TEST_PATH=./data/youtube/test.csv"              >> .env
-          echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv" >> .env
-          echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"  >> .env
-          echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv" >> .env
-          echo "FIGURES_PATH=./reports/figures" >> .env
-          echo "VALIDATION_PATH=./reports/validation" >> .env
-          echo "RESULT_PATH=./reports/results" >> .env
-          echo "MODEL_PATH=./models" >> .env
+          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}"          >> .env
+          echo "BASE_CSV=./data/youtube/youtube.csv"                      >> .env
+          echo "OUTPUT_CSV=./data/youtube/youtube_enriched.csv"           >> .env
+          echo "BACKUP_DIR=./data/youtube/backup"                         >> .env
+          echo "HF_TOKEN=${{ secrets.HF_TOKEN }}"                         >> .env
+          echo "CLEANED_PATH=./data/youtube/cleaned_dataset.csv"          >> .env
+          echo "MERGED_PATH=./data/youtube/dataset.csv"                   >> .env
+          echo "EXTRACTED_PATH=./data/youtube/extracted.csv"              >> .env
+          echo "TRAIN_PATH=./data/youtube/train.csv"                      >> .env
+          echo "VAL_PATH=./data/youtube/val.csv"                          >> .env
+          echo "TEST_PATH=./data/youtube/test.csv"                        >> .env
+          echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv"        >> .env
+          echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"            >> .env
+          echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv"          >> .env
+          echo "FIGURES_PATH=./reports/figures"                           >> .env
+          echo "VALIDATION_PATH=./reports/validation"                     >> .env
+          echo "RESULT_PATH=./reports/results"                            >> .env
+          echo "MODEL_PATH=./models"                                      >> .env
       - name: Create data directories
         run: mkdir -p data/youtube
       - uses: actions/download-artifact@v4
@@ -237,27 +240,27 @@ jobs:
           cache: 'pip'
       - run: pip install -r requirements.txt
       - run: pip install -e .
-      - run: pip install dotenv
+      - run: pip install python-dotenv                # ← fixed: was "dotenv"
       - name: Create .env file
         run: |
-          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
-          echo "BASE_CSV=./data/youtube/youtube.csv"            >> .env
-          echo "OUTPUT_CSV=./data/youtube/youtube_enriched.csv" >> .env
-          echo "BACKUP_DIR=./data/youtube/backup"               >> .env
-          echo "HF_TOKEN=${{ secrets.HF_TOKEN }}"               >> .env
-          echo "CLEANED_PATH=./data/youtube/cleaned_dataset.csv" >> .env
-          echo "MERGED_PATH=./data/youtube/dataset.csv"         >> .env
-          echo "EXTRACTED_PATH=./data/youtube/extracted.csv"    >> .env
-          echo "TRAIN_PATH=./data/youtube/train.csv"            >> .env
-          echo "VAL_PATH=./data/youtube/val.csv"                >> .env
-          echo "TEST_PATH=./data/youtube/test.csv"              >> .env
-          echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv" >> .env
-          echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"  >> .env
-          echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv" >> .env
-          echo "FIGURES_PATH=./reports/figures" >> .env
-          echo "VALIDATION_PATH=./reports/validation" >> .env
-          echo "RESULT_PATH=./reports/results" >> .env
-          echo "MODEL_PATH=./models" >> .env
+          echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}"          >> .env
+          echo "BASE_CSV=./data/youtube/youtube.csv"                      >> .env
+          echo "OUTPUT_CSV=./data/youtube/youtube_enriched.csv"           >> .env
+          echo "BACKUP_DIR=./data/youtube/backup"                         >> .env
+          echo "HF_TOKEN=${{ secrets.HF_TOKEN }}"                         >> .env
+          echo "CLEANED_PATH=./data/youtube/cleaned_dataset.csv"          >> .env
+          echo "MERGED_PATH=./data/youtube/dataset.csv"                   >> .env
+          echo "EXTRACTED_PATH=./data/youtube/extracted.csv"              >> .env
+          echo "TRAIN_PATH=./data/youtube/train.csv"                      >> .env
+          echo "VAL_PATH=./data/youtube/val.csv"                          >> .env
+          echo "TEST_PATH=./data/youtube/test.csv"                        >> .env
+          echo "SCALED_TRAIN_PATH=./data/youtube/scaled_train.csv"        >> .env
+          echo "SCALED_VAL_PATH=./data/youtube/scaled_val.csv"            >> .env
+          echo "SCALED_TEST_PATH=./data/youtube/scaled_test.csv"          >> .env
+          echo "FIGURES_PATH=./reports/figures"                           >> .env
+          echo "VALIDATION_PATH=./reports/validation"                     >> .env
+          echo "RESULT_PATH=./reports/results"                            >> .env
+          echo "MODEL_PATH=./models"                                      >> .env
       - name: Create data directories
         run: mkdir -p data/youtube
       - uses: actions/download-artifact@v4
@@ -265,7 +268,7 @@ jobs:
           name: features-data
           path: ./data/youtube/
       - run: python src/who_will_viral/train.py
-      # - uses: actions/upload-artifact@v4
-      #   with:
-      #     name: features-data
-      #     path: ./data/youtube/extracted.csv
+      - uses: actions/upload-artifact@v4           
+        with:
+          name: trained-models
+          path: ./models/
