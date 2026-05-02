@@ -41,20 +41,14 @@ class ModelLoader:
 
     def load(self):
         """Load model and initialize preprocessor."""
-        # Load model
         if not Path(self.model_path).exists():
             raise FileNotFoundError(f'Model file not found: {self.model_path}')
 
         if not str(self.model_path).endswith((".pkl", ".joblib")):
             raise ValueError("Unsupported model format")
 
-        try:
-            self.model = joblib.load(self.model_path)
-        except Exception:
-            with open(self.model_path, 'rb') as f:
-                self.model = pickle.load(f)
+        self.model = joblib.load(self.model_path)  
 
-        # Initialize preprocessor (loads PCA, scaler, RFECV, etc.)
         self.preprocessor = DeploymentPreprocessor()
 
     def predict(self, **feature_kwargs) -> dict:
