@@ -4,7 +4,6 @@ from sklearn.feature_selection import RFECV
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier
 
-
 COLS_TO_DROP = [
     'video_id',
     'title',
