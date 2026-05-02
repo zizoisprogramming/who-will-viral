@@ -98,6 +98,9 @@ class ModelLoader:
         Returns:
             List of feature names
         """
+        if self.model is None:
+            raise RuntimeError("Model not loaded.")
+        
         if hasattr(self.model, 'feature_names_in_'):
             return list(self.model.feature_names_in_)
         return []
