@@ -45,6 +45,9 @@ class ModelLoader:
         if not Path(self.model_path).exists():
             raise FileNotFoundError(f'Model file not found: {self.model_path}')
 
+        if not str(self.model_path).endswith((".pkl", ".joblib")):
+            raise ValueError("Unsupported model format")
+
         try:
             self.model = joblib.load(self.model_path)
         except Exception:
