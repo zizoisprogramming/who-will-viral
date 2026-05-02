@@ -5,7 +5,6 @@ PCA, scaler, RFECV) and handles inference end-to-end.
 """
 
 import os
-import pickle
 from pathlib import Path
 
 import joblib
@@ -47,7 +46,7 @@ class ModelLoader:
         if not str(self.model_path).endswith((".pkl", ".joblib")):
             raise ValueError("Unsupported model format")
 
-        self.model = joblib.load(self.model_path)  
+        self.model = joblib.load(self.model_path)
 
         self.preprocessor = DeploymentPreprocessor()
 
