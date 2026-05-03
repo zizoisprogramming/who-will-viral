@@ -43,8 +43,8 @@ class ModelLoader:
         if not Path(self.model_path).exists():
             raise FileNotFoundError(f'Model file not found: {self.model_path}')
 
-        if not str(self.model_path).endswith((".pkl", ".joblib")):
-            raise ValueError("Unsupported model format")
+        if not str(self.model_path).endswith(('.pkl', '.joblib')):
+            raise ValueError('Unsupported model format')
 
         self.model = joblib.load(self.model_path)
 
@@ -95,7 +95,7 @@ class ModelLoader:
             List of feature names
         """
         if self.model is None:
-            raise RuntimeError("Model not loaded.")
+            raise RuntimeError('Model not loaded.')
 
         if hasattr(self.model, 'feature_names_in_'):
             return list(self.model.feature_names_in_)

@@ -1,68 +1,51 @@
 # who-will-viral
 
-![PyPI version](https://img.shields.io/pypi/v/who_will_viral.svg)
-
 A machine learning project that predicts whether a YouTube video will trend based on features like description, engagement metrics (likes, comments, views), and other video characteristics.
 
-* [GitHub](https://github.com/zizoisprogramming/who_will_viral/) | [PyPI](https://pypi.org/project/who_will_viral/) | [Documentation](https://zizoisprogramming.github.io/who_will_viral/)
-* Created by [team_15](https://audrey.feldroy.com/) | GitHub [@zizoisprogramming](https://github.com/zizoisprogramming) | PyPI [@zizoisprogramming](https://pypi.org/user/zizoisprogramming/)
-* MIT License
+- GitHub: [zizoisprogramming/who_will_viral](https://github.com/zizoisprogramming/who_will_viral/)
+- MIT License
 
 ## Overview
 
-**who-will-viral** is a comprehensive machine learning pipeline that predicts YouTube video virality. The project implements a complete end-to-end workflow including:
+**who-will-viral** is a complete machine learning pipeline that predicts YouTube video virality. It implements an end-to-end workflow:
 
-- **Data Acquisition**: Fetches YouTube videos via API and web scraping
-- **Data Validation**: Validates raw data quality and structure
-- **Data Cleaning**: Handles missing values, duplicates, and data standardization
-- **Feature Engineering**: Extracts, selects, and scales features
-- **Model Training**: Trains multiple ML models with hyperparameter optimization using Optuna
-- **Model Evaluation**: Tracks experiments with MLflow
-
-## Features
-
-- 🎯 **Binary Classification**: Predicts trending vs. non-trending YouTube videos
-- 📊 **Multiple Data Sources**: Combines YouTube API and web scraping for data collection
-- 🔄 **Comprehensive Pipeline**: Complete ETL workflow from acquisition to prediction
-- 🤖 **Multiple ML Models**: 
-  - Logistic Regression
-  - Random Forest
-  - XGBoost
-  - SVM (Linear SVC)
-  - KNN
-  - Naive Bayes
-  - AdaBoost
-- ⚖️ **Class Imbalance Handling**: SMOTE, random over/under-sampling strategies
-- 🔍 **Hyperparameter Optimization**: Automated tuning with Optuna and GridSearchCV
-- 📈 **Experiment Tracking**: MLflow integration for model versioning and comparison
-- 📝 **Comprehensive Validation**: Great Expectations for data quality assurance
-- 💾 **Natural Language Processing**: Sentence transformers for text feature extraction
+- **Data Acquisition**: YouTube API and web scraping
+- **Data Validation**: Quality checks and data profiling
+- **Data Cleaning**: Standardization, deduplication, outlier removal
+- **Feature Engineering**: Text features, scaling, selection
+- **Model Training**: Multiple classifiers with hyperparameter tuning
+- **Experiment Tracking**: MLflow for comparison and versioning
 
 ## Project Structure
 
 ```
 who-will-viral/
-├── src/who_will_viral/           # Main package
-│   ├── acquire.py                # Data acquisition pipeline
-│   ├── clean.py                  # Data cleaning logic
-│   ├── validate.py               # Data validation
-│   ├── validation_cleaned.py     # Post-cleaning validation
-│   ├── feature_engineering.py    # Feature engineering orchestration
-│   ├── train.py                  # Model training and evaluation
-│   ├── cli.py                    # CLI interface (Typer)
-│   ├── mlflow_utilities.py       # MLflow experiment tracking
-│   ├── utils.py                  # Utility functions
-│   ├── data_acquisition/         # API and web scraping modules
-│   ├── feature_engineering/      # Feature extraction, scaling, selection
-│   └── visualization/            # Data visualization modules
-├── tests/                        # Comprehensive test suite
-│   ├── unit/                     # Unit tests
-│   └── integration/              # Integration tests
-├── notebooks/                    # Jupyter notebooks for exploration
-├── data/                         # Data storage
-├── docs/                         # Documentation
-├── pyproject.toml                # Poetry configuration
-└── Makefile                      # Build commands
+├── src/who_will_viral/        # Main package
+│   ├── acquire.py             # Data acquisition
+│   ├── clean.py               # Data cleaning
+│   ├── validate.py            # Data validation
+│   ├── validation_cleaned.py  # Post-cleaning validation
+│   ├── feature_engineering.py # Feature engineering orchestration
+│   ├── train.py               # Model training and evaluation
+│   ├── cli.py                 # CLI interface
+│   ├── model_loader.py        # Model loading utilities
+│   ├── data_acquisition/      # API and scraping modules
+│   ├── feature_engineering/   # Feature modules
+│   ├── models/                # Trained model artifacts
+│   └── visualization/         # Visualization utilities
+├── tests/                     # Test suite
+│   ├── unit/                  # Unit tests
+│   └── integration/           # Integration tests
+├── notebooks/                 # Jupyter notebooks for analysis
+├── data/                      # Raw and processed data
+├── reports/                   # Results, figures, validation reports
+├── docs/                      # Documentation
+├── scripts/                   # Utility scripts (release.py)
+├── pyproject.toml             # Dependencies and project config
+├── justfile                   # Task automation (recommended)
+├── Makefile                   # Task automation (legacy)
+├── zensical.toml              # Docs build config
+└── poetry.lock                # Locked dependencies
 ```
 
 ## Installation
@@ -81,17 +64,13 @@ cd who_will_viral
 poetry install
 ```
 
-### Requirements
-
-- Python 3.12+
-- Poetry (recommended) or pip
-- YouTube API key (for data acquisition)
+**Requirements**: Python 3.12+, Poetry, YouTube API key
 
 ## Quick Start
 
-### 1. Set Up Environment Variables
+### 1. Environment Setup
 
-Create a `.env` file in the project root:
+Create `.env` file:
 
 ```env
 YOUTUBE_API_KEY=your_api_key_here
@@ -104,219 +83,102 @@ VAL_PATH=./data/val.csv
 TEST_PATH=./data/test.csv
 ```
 
-### 2. Run the Complete Pipeline
+### 2. Run Pipeline
 
 ```bash
-# Using Makefile
-make pipeline
+# Full pipeline
+just pipeline
 
-# Or run individual steps
-make acquire           # Data acquisition
-make validate          # Validate raw data
-make clean_data        # Clean data
-make validate_cleaned  # Validate cleaned data
-make feature           # Feature engineering
-make train             # Model training
+# Individual stages
+just acquire
+just validate
+just clean-data
+just validate-cleaned
+just feature
+just train
 ```
 
-### 3. Use the CLI
+### 3. CLI
 
 ```bash
-# Run the CLI
-who_will_viral
-
-# See available commands
 poetry run who_will_viral --help
 ```
 
 ## Pipeline Stages
 
-### 1. Data Acquisition (`acquire.py`)
-
-Collects YouTube video data through:
-- **YouTube API**: Official API for detailed video metadata
-- **Web Scraping**: Beautiful Soup for supplementary data collection
-- **Database Management**: Stores and manages video records
-
-```bash
-make acquire
-```
-
-### 2. Data Validation (`validate.py`)
-
-Validates raw data quality:
-- Checks data types and structure
-- Identifies missing values
-- Validates language codes
-- Generates quick summary statistics
-
-```bash
-make validate
-```
-
-### 3. Data Cleaning (`clean.py`)
-
-Cleans and preprocesses data:
-- Drops irrelevant columns
-- Handles missing values
-- Removes duplicates
-- Filters by language
-- Standardizes data formats
-- Removes outliers
-
-```bash
-make clean_data
-```
-
-### 4. Validation After Cleaning (`validation_cleaned.py`)
-
-Post-cleaning validation to ensure data quality:
-
-```bash
-make validate_cleaned
-```
-
-### 5. Feature Engineering (`feature_engineering.py`)
-
-Extracts and optimizes features:
-- **Feature Extraction**: Generates features from text using Sentence Transformers
-- **Feature Selection**: Selects most informative features
-- **Feature Scaling**: Normalizes numerical features
-
-```bash
-make feature
-```
-
-### 6. Model Training (`train.py`)
-
-Trains and evaluates multiple models:
-- Data splits: 60% train, 20% validation, 20% test
-- Handles class imbalance with SMOTE
-- Hyperparameter optimization with Optuna
-- MLflow experiment tracking
-- Comprehensive performance metrics
-
-```bash
-make train
-```
+1. **acquire.py** — Fetch YouTube data via API and scraping
+2. **validate.py** — Validate raw data quality
+3. **clean.py** — Clean and standardize data
+4. **validation_cleaned.py** — Validate cleaned data
+5. **feature_engineering.py** — Engineer and select features
+6. **train.py** — Train and evaluate models with MLflow
 
 ## Development
 
-### Setup for Development
+### Tests
 
 ```bash
-# Clone and install with dev dependencies
-git clone git@github.com:your_username/who_will_viral.git
-cd who_will_viral
-poetry install
+poetry run pytest                # Run all tests
+poetry run pytest --cov          # With coverage
+just test                        # Using justfile
+just coverage                    # Full coverage report
 ```
 
-### Run Tests
+### Code Quality
 
 ```bash
-# Run all tests
-poetry run pytest
-
-# Run with coverage
-poetry run pytest --cov=who_will_viral
-
-# Run specific test file
-poetry run pytest tests/unit/test_acquire.py
+just qa                          # Format, lint, type check, test
+poetry run ruff format .         # Format
+poetry run ruff check .          # Lint
+just type-check                  # Type checking
 ```
 
-### Quality Assurance
+### Documentation
 
 ```bash
-# Run format, lint, type check, and tests
-just qa
-
-# Or run individually
-poetry run ruff check .           # Linting
-poetry run ruff format .          # Formatting
-poetry run pytest                 # Tests
+just docs-serve                  # Preview at localhost:8000
+just docs-build                  # Build static docs
 ```
 
-### Code Style
+### Task Runner
 
-- **Formatter**: Ruff
-- **Linter**: Ruff
-- **Type Checking**: Pylance (via Pyright)
-- **Testing**: Pytest
+Use `justfile` (recommended):
+```bash
+just --list                      # View all tasks
+```
+
+Or legacy `Makefile`:
+```bash
+make help
+```
 
 ## Documentation
 
-Documentation is built with [Zensical](https://zensical.org/) and deployed to GitHub Pages.
+Built with [Zensical](https://zensical.org/), deployed to [GitHub Pages](https://zizoisprogramming.github.io/who_will_viral/).
 
-- **Live site:** https://zizoisprogramming.github.io/who_will_viral/
-- **Preview locally:** `just docs-serve` (serves at http://localhost:8000)
-- **Build:** `just docs-build`
+- **Preview**: `just docs-serve`
+- **Build**: `just docs-build`
+- **Deploy**: Automatic on push to `main` (GitHub Actions)
 
-API documentation is auto-generated from docstrings using [mkdocstrings](https://mkdocstrings.github.io/).
+## Dependencies
 
-Docs deploy automatically on push to `main` via GitHub Actions. To enable this, go to your repo's Settings > Pages and set the source to **GitHub Actions**.
-
-## Key Dependencies
-
-- **Data Processing**: pandas, numpy
-- **ML Models**: scikit-learn, XGBoost
-- **Feature Engineering**: sentence-transformers
-- **Class Imbalance**: imbalanced-learn (SMOTE, RandomOver/UnderSampler)
-- **Hyperparameter Optimization**: Optuna
-- **Experiment Tracking**: MLflow
-- **Data Validation**: Great Expectations
-- **Web Scraping**: BeautifulSoup4
-- **CLI**: Typer, Rich
+- **ML**: scikit-learn, XGBoost, Optuna
+- **Data**: pandas, numpy
+- **NLP**: sentence-transformers
+- **Class Balance**: imbalanced-learn (SMOTE)
+- **Tracking**: MLflow
+- **Validation**: great-expectations
+- **Web**: requests, beautifulsoup4
+- **CLI**: typer, rich
 - **Testing**: pytest, pytest-cov, pytest-mock
+- **Quality**: ruff, pylance
 
-## Project Statistics
+See `pyproject.toml` for full list and versions.
 
-- **Models Supported**: 7+ classification algorithms
-- **Data Sources**: YouTube API + Web Scraping
-- **Validation Framework**: Great Expectations
-- **Test Coverage**: Comprehensive unit and integration tests
-- **Documentation**: Auto-generated API docs + usage guides
+## License & Contributing
 
-## Contributing
-
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details on:
-
-- Reporting bugs
-- Fixing bugs
-- Implementing features
-- Writing documentation
-
-## Code of Conduct
-
-Please review [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community guidelines.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Security
-
-For security issues, please see [SECURITY.md](SECURITY.md) for reporting procedures.
-
-## Authors & Attribution
-
-- **Created by**: team_15
-- **Maintainer**: [@zizoisprogramming](https://github.com/zizoisprogramming)
-- **PyPI**: [@zizoisprogramming](https://pypi.org/user/zizoisprogramming/)
-
-## Changelog
-
-See [CHANGELOG](CHANGELOG/) for version history and release notes.
-
-## Additional Resources
-
-- 📚 [Installation Guide](docs/installation.md)
-- 📖 [Usage Guide](docs/usage.md)
-- 🔌 [API Reference](docs/api.md)
-- 💬 [Discussions & Issues](https://github.com/zizoisprogramming/who_will_viral/issues)
-- 📝 [Contributing Guidelines](CONTRIBUTING.md)
-
-## Author
-
-who-will-viral was created in 2026 by team_15.
-
-Built with [Cookiecutter](https://github.com/cookiecutter/cookiecutter) and the [audreyfeldroy/cookiecutter-pypackage](https://github.com/audreyfeldroy/cookiecutter-pypackage) project template.
+- **License**: MIT (see [LICENSE](LICENSE))
+- **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md)
+- **Code of Conduct**: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
+- **Security**: [SECURITY.md](SECURITY.md)
+- **Changelog**: [CHANGELOG/](CHANGELOG/)

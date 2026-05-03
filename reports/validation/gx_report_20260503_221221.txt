@@ -1,0 +1,78 @@
+=================================================================
+  GREAT EXPECTATIONS REPORT  (v1.x)
+=================================================================
+  Overall : FAILED
+=================================================================
+
+  [FAIL]  expect_column_values_to_not_be_null
+             Column : publishedAt
+
+  [FAIL]  expect_column_values_to_match_regex
+             Column : publishedAt
+
+  [FAIL]  expect_column_values_to_not_be_null
+             Column : channelId
+
+  [FAIL]  expect_column_values_to_be_between
+             Column : favoriteCount
+
+  [FAIL]  expect_column_values_to_be_between
+             Column : categoryId
+
+  [FAIL]  expect_column_values_to_be_in_set
+             Column : dimension
+
+  [FAIL]  expect_column_values_to_be_in_set
+             Column : definition
+
+  [FAIL]  expect_column_values_to_be_in_set
+             Column : projection
+
+  [PASS]  expect_column_values_to_not_be_null
+             Column : video_id
+
+  [PASS]  expect_column_values_to_be_unique
+             Column : video_id
+
+  [FAIL]  expect_column_value_lengths_to_be_between
+             Column : video_id
+             Issues : 5 unexpected values
+             Sample : ['vid1', 'vid2', 'vid3']
+
+  [PASS]  expect_column_values_to_not_be_null
+             Column : title
+
+  [PASS]  expect_column_values_to_not_be_null
+             Column : view_count
+
+  [PASS]  expect_column_values_to_be_between
+             Column : view_count
+
+  [PASS]  expect_column_median_to_be_between
+             Column : view_count
+
+  [PASS]  expect_column_values_to_not_be_null
+             Column : likes
+
+  [PASS]  expect_column_values_to_be_between
+             Column : likes
+
+  [PASS]  expect_column_values_to_not_be_null
+             Column : is_trending
+
+  [PASS]  expect_column_values_to_be_between
+             Column : comment_count
+
+  [PASS]  expect_column_values_to_match_regex
+             Column : duration
+
+  [PASS]  expect_compound_columns_to_be_unique
+             Column : table-level
+
+  [FAIL]  expect_table_columns_to_match_set
+             Column : table-level
+
+  [FAIL]  expect_table_row_count_to_be_between
+             Column : table-level
+
+=================================================================
