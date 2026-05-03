@@ -30,10 +30,11 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
-      - run: pip install -r requirements.txt
-      - run: pip install -e .
+      - name: Install Poetry
+        run: pip install poetry
+      - name: Install dependencies
+        run: make install
       - run: pip install pytest pytest-cov pytest-mock python-dotenv
-      # Provide dummy environment variables so instantiation doesn't fail
       - name: Create Test .env file
         run: |
           echo "YOUTUBE_API_KEY=dummy_key" >> .env
@@ -47,11 +48,10 @@ jobs:
           echo "SCALED_VAL_PATH=dummy.csv" >> .env
           echo "SCALED_TEST_PATH=dummy.csv" >> .env
       - name: Run Pytest with Coverage
-        # Fails the build if coverage is below a certain threshold (optional, adjust as needed)
-        run: pytest tests/ --cov=src/who_will_viral/ --cov-report=xml --cov-report=term-missing
+        run: poetry run pytest tests/ --cov=src/who_will_viral/ --cov-report=xml --cov-report=term-missing
 
   validate:
-    needs: [test]  # Now waits for tests to pass
+    needs: [test]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -59,9 +59,11 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
-      - run: pip install -r requirements.txt
-      - run: pip install -e .
-      - run: pip install gdown dotenv
+      - name: Install Poetry
+        run: pip install poetry
+      - name: Install dependencies
+        run: make install
+      - run: pip install gdown
       - name: Create .env file
         run: |
           echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
@@ -84,7 +86,8 @@ jobs:
         run: gdown ${{ secrets.MERGED_PATH_DRIVE }} -O data/youtube/youtube.rar
       - run: sudo apt-get install -y unrar
       - run: unrar x data/youtube/youtube.rar data/youtube/
-      - run: python src/who_will_viral/validate.py
+      - name: Run validate
+        run: make validate
       - uses: actions/upload-artifact@v4
         with:
           name: raw-data
@@ -99,9 +102,10 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
-      - run: pip install -r requirements.txt
-      - run: pip install -e .
-      - run: pip install dotenv
+      - name: Install Poetry
+        run: pip install poetry
+      - name: Install dependencies
+        run: make install
       - name: Create .env file
         run: |
           echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
@@ -124,7 +128,8 @@ jobs:
         with:
           name: raw-data
           path: ./data/youtube/
-      - run: python src/who_will_viral/clean.py
+      - name: Run clean_data
+        run: make clean_data
       - uses: actions/upload-artifact@v4
         with:
           name: cleaned-data
@@ -139,9 +144,10 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
-      - run: pip install -r requirements.txt
-      - run: pip install -e .
-      - run: pip install dotenv
+      - name: Install Poetry
+        run: pip install poetry
+      - name: Install dependencies
+        run: make install
       - name: Create .env file
         run: |
           echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
@@ -164,7 +170,8 @@ jobs:
         with:
           name: cleaned-data
           path: ./data/youtube/
-      - run: python src/who_will_viral/validation_cleaned.py
+      - name: Run validate_cleaned
+        run: make validate_cleaned
 
   feature-engineering:
     needs: [validate-clean]
@@ -175,9 +182,10 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
-      - run: pip install -r requirements.txt
-      - run: pip install -e .
-      - run: pip install dotenv
+      - name: Install Poetry
+        run: pip install poetry
+      - name: Install dependencies
+        run: make install
       - name: Create .env file
         run: |
           echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
@@ -200,7 +208,8 @@ jobs:
         with:
           name: cleaned-data
           path: ./data/youtube/
-      - run: python src/who_will_viral/feature_engineering.py
+      - name: Run feature engineering
+        run: make feature
       - uses: actions/upload-artifact@v4
         with:
           name: features-data
@@ -215,9 +224,10 @@ jobs:
         with:
           python-version: '3.12'
           cache: 'pip'
-      - run: pip install -r requirements.txt
-      - run: pip install -e .
-      - run: pip install dotenv
+      - name: Install Poetry
+        run: pip install poetry
+      - name: Install dependencies
+        run: make install
       - name: Create .env file
         run: |
           echo "YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}" >> .env
@@ -240,8 +250,5 @@ jobs:
         with:
           name: features-data
           path: ./data/youtube/
-      - run: python src/who_will_viral/train.py
-      # - uses: actions/upload-artifact@v4
-      #   with:
-      #     name: features-data
-      #     path: ./data/youtube/extracted.csv
+      - name: Run training
+        run: make train
