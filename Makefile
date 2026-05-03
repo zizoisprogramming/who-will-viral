@@ -11,7 +11,8 @@ VALIDATE_CLEANED = src.who_will_viral.validation_cleaned
 VISUALIZE = src.who_will_viral.visualization.visualization
 FEATURE = src/who_will_viral/feature_engineering.py
 TRAIN = src.who_will_viral.train
-
+TEST_DIR = tests/
+COV_SRC = src/who_will_viral/
 
 # Default target
 all: help
@@ -38,9 +39,11 @@ feature:
 train:
 	$(PYTHON) $(TRAIN)
 
+test:
+	poetry run pytest $(TEST_DIR) --cov=$(COV_SRC) --cov-report=xml --cov-report=term-missing
 
 # Full pipeline
-pipeline: acquire validate clean_data validate_cleaned feature train
+pipeline: test acquire validate clean_data validate_cleaned feature train
 
 install:
 	poetry install
@@ -62,6 +65,7 @@ help:
 	@echo "make visualize - Run visualization only"
 	@echo "make feature   - Run feature engineering only"
 	@echo "make train     - Run training only"
+	@echo "make test              - Run tests with coverage"
 	@echo "make venv      - Create virtual environment"
 	@echo "make install   - Install dependencies"
 	@echo "make freeze    - Freeze deps to requirements.txt"

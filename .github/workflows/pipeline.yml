@@ -34,7 +34,6 @@ jobs:
         run: pip install poetry
       - name: Install dependencies
         run: make install
-      - run: pip install pytest pytest-cov pytest-mock python-dotenv
       - name: Create Test .env file
         run: |
           echo "YOUTUBE_API_KEY=dummy_key" >> .env
@@ -48,7 +47,7 @@ jobs:
           echo "SCALED_VAL_PATH=dummy.csv" >> .env
           echo "SCALED_TEST_PATH=dummy.csv" >> .env
       - name: Run Pytest with Coverage
-        run: poetry run pytest tests/ --cov=src/who_will_viral/ --cov-report=xml --cov-report=term-missing
+        run: make test
 
   validate:
     needs: [test]
