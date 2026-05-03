@@ -1,4 +1,3 @@
-
 import pandas as pd
 
 
@@ -8,8 +7,7 @@ class YoutubeDatabase:
         self.path = path
 
     def run(self) -> pd.DataFrame:
-        self.logger.info("Loading base CSV: %s", self.path)
+        self.logger.info('Loading base CSV: %s', self.path)
         df = pd.read_csv(self.path)
-        self.logger.info("  shape: %s", df.shape)
+        self.logger.info('  shape: %s', df.shape)
         return df
-

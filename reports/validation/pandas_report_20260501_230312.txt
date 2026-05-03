@@ -1,0 +1,66 @@
+=================================================================
+  PANDAS VALIDATION REPORT
+=================================================================
+
+[FAIL]  [Consistency]  Schema
+   -> Column 'view_count': expected 'int64', got 'float64'
+   -> Column 'likes': expected 'int64', got 'float64'
+   -> Column 'comment_count': expected 'int64', got 'float64'
+
+[FAIL]  [Consistency]  Default Language
+   -> Column 'defaultLanguage': 126 invalid row(s). Sample values: ['jv', 'dz', 'yo', 'ab', 'rw']
+
+[PASS]  [Completeness]  Blank Strings
+   -> No issues found.
+
+[FAIL]  [Accuracy]  Cross-Column Rules
+   -> likes > view_count (impossible): 1087 rows
+
+[PASS]  [Timeliness]  No Future Dates
+   -> No issues found.
+
+[PASS]  [Timeliness]  Date Order (publishedAt <= trending_date)
+   -> 165830 non-null values could not be parsed as dates
+
+[FAIL]  [Outliers]  Outliers - IQR x1.5
+   -> Column 'view_count': 56215 extreme outliers (bounds [-3177369, 5988574])
+   -> Column 'likes': 51596 extreme outliers (bounds [-104840, 188556])
+   -> Column 'comment_count': 41330 extreme outliers (bounds [-3800, 6656])
+   -> Column 'categoryId': 58662 extreme outliers (bounds [12, 32])
+
+[FAIL]  [Outliers]  Outliers - Z-score > 3.0
+   -> Column 'view_count': 2469 values with |z| > 3.0
+   -> Column 'likes': 4629 values with |z| > 3.0
+   -> Column 'comment_count': 1425 values with |z| > 3.0
+   -> Column 'card_count': 11440 values with |z| > 3.0
+   -> Column 'chapter_count': 8398 values with |z| > 3.0
+
+[PASS]  [Distribution]  Category Dominance 'categoryId'
+   -> No issues found.
+
+[FAIL]  [Distribution]  Non-Zero Variance
+   -> Column 'favoriteCount': all values are identical (zero variance)
+
+[PASS]  [Distribution]  Class Imbalance
+   -> No issues found.
+
+[FAIL]  [Relationships]  Correlation (pearson)
+   -> Correlation 0.70 > 0.6 between 'view_count' and 'likes'
+
+[FAIL]  [Relationships]  Correlation (spearman)
+   -> Correlation 0.85 > 0.6 between 'view_count' and 'likes'
+   -> Correlation 0.71 > 0.6 between 'likes' and 'comment_count'
+
+[FAIL]  [Relationships]  Skewness
+   -> Skewness 34.05 exceeds threshold 0.6 in 'view_count'
+   -> Skewness 16.55 exceeds threshold 0.6 in 'likes'
+   -> Skewness 85.15 exceeds threshold 0.6 in 'comment_count'
+   -> Skewness -1.50 exceeds threshold 0.6 in 'categoryId'
+   -> Skewness 5.52 exceeds threshold 0.6 in 'card_count'
+   -> Skewness 6.83 exceeds threshold 0.6 in 'chapter_count'
+
+[PASS]  [Referential Integrity]  Count Match: 'chapter_count' vs len('chapters')
+   -> No issues found.
+
+[PASS]  [Referential Integrity]  Count Match: 'card_count' vs len('cards')
+   -> No issues found.

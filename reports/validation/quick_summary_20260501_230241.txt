@@ -1,0 +1,33 @@
+
+=================================================================
+  DATASET QUICK SUMMARY
+=================================================================
+  Rows    : 391091
+  Columns : 37
+
+  Trending Distribution:
+    0 → 219360 rows (56.1%)
+    1 → 171731 rows (43.9%)
+
+  Top 10 Missing Values:
+    contentDetails.contentRating.ytRating         390585
+    contentDetails.regionRestriction.allowed      376894
+    contentDetails.regionRestriction.blocked      372111
+    trending_date                                 218362
+    tags                                          121441
+    description                                   59622
+    duration                                      15209
+    licensedContent                               15200
+    favoriteCount                                 15200
+    embeddable                                    15200
+
+  Numeric Summary (mean / min / max):
+    categoryId                           mean=        20.4  min=         1  max=          30
+    view_count                           mean=   7028208.5  min=         0  max=  4168918788
+    likes                                mean=    153147.2  min=         0  max=    43378323
+    comment_count                        mean=      4479.4  min=         0  max=    10483030
+    is_trending                          mean=         0.4  min=         0  max=           1
+    favoriteCount                        mean=         0.0  min=         0  max=           0
+    chapter_count                        mean=         1.1  min=         0  max=         133
+    card_count                           mean=         0.0  min=         0  max=           1
+=================================================================
