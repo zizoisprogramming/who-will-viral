@@ -1,50 +1,50 @@
-.PHONY: all acquire validate pipeline install freeze clean test
+.PHONY: all pipeline install freeze clean test help
 
-# Python command
 PYTHON = poetry run python -m
 
-# Files
-ACQUIRE = src.who_will_viral.acquire
-VALIDATE = src.who_will_viral.validate
-CLEAN = src.who_will_viral.clean
-VALIDATE_CLEANED = src.who_will_viral.validation_cleaned
-VISUALIZE = src.who_will_viral.visualization.visualization
-FEATURE = src/who_will_viral/feature_engineering.py
-TRAIN = src.who_will_viral.train
+ACQUIRE_SRC    = src/who_will_viral/acquire.py
+VALIDATE_SRC   = src/who_will_viral/validate.py
+CLEAN_SRC      = src/who_will_viral/clean.py
+VAL_CLEAN_SRC  = src/who_will_viral/validation_cleaned.py
+FEATURE_SRC    = src/who_will_viral/feature_engineering.py
+TRAIN_SRC      = src/who_will_viral/train.py
 
-# Test config
-TEST_DIR = tests/
-COV_SRC = src/who_will_viral/
+MERGED         = data/youtube/dataset.csv
+CLEANED        = data/youtube/cleaned_dataset.csv
+EXTRACTED      = data/youtube/extracted.csv
+TRAIN          = data/youtube/train.csv
 
-# Default target
+TEST_DIR       = tests/
+COV_SRC        = src/who_will_viral/
+
 all: help
 
-acquire:
-	$(PYTHON) $(ACQUIRE)
+acquire:       $(MERGED)
+validate:      $(MERGED)
+clean_data:    $(CLEANED)
+validate_cleaned: $(CLEANED)
+feature:       $(EXTRACTED)
+train:         $(TRAIN)
 
-validate:
-	$(PYTHON) $(VALIDATE)
 
-clean_data:
-	$(PYTHON) $(CLEAN)
+$(MERGED): $(ACQUIRE_SRC)
+	$(PYTHON) who_will_viral.acquire
+	$(PYTHON) who_will_viral.validate
 
-validate_cleaned:
-	$(PYTHON) $(VALIDATE_CLEANED)
+$(CLEANED): $(MERGED) $(CLEAN_SRC) $(VAL_CLEAN_SRC)
+	$(PYTHON) who_will_viral.clean
+	$(PYTHON) who_will_viral.validation_cleaned
 
-visualize:
-	$(PYTHON) $(VISUALIZE)
+$(EXTRACTED): $(CLEANED) $(FEATURE_SRC)
+	poetry run python $(FEATURE_SRC)
 
-feature:
-	poetry run python $(FEATURE)
-
-train:
-	$(PYTHON) $(TRAIN)
+$(TRAIN): $(EXTRACTED) $(TRAIN_SRC)
+	$(PYTHON) who_will_viral.train
 
 test:
 	poetry run pytest $(TEST_DIR) --cov=$(COV_SRC) --cov-report=xml --cov-report=term-missing
 
-# Full pipeline
-pipeline: test acquire validate clean_data validate_cleaned feature train
+pipeline: test $(TRAIN)
 
 install:
 	poetry install
@@ -57,15 +57,12 @@ clean:
 	find . -type f -name "*.pyc" -delete
 
 help:
-	@echo "make pipeline          - Run full pipeline"
-	@echo "make acquire           - Run acquisition only"
-	@echo "make validate          - Run validation only"
-	@echo "make clean_data        - Run cleaning only"
-	@echo "make validate_cleaned  - Run validation after cleaning only"
-	@echo "make visualize         - Run visualization only"
-	@echo "make feature           - Run feature engineering only"
-	@echo "make train             - Run training only"
+	@echo "make pipeline          - Run tests then full pipeline (skips unchanged steps)"
+	@echo "make acquire           - Run acquisition + validation"
+	@echo "make clean_data        - Run cleaning + validation"
+	@echo "make feature           - Run feature engineering"
+	@echo "make train             - Run training"
 	@echo "make test              - Run tests with coverage"
 	@echo "make install           - Install dependencies"
-	@echo "make freeze            - Freeze deps to requirements.txt"
+	@echo "make freeze            - Lock dependencies"
 	@echo "make clean             - Remove __pycache__ and .pyc files"
