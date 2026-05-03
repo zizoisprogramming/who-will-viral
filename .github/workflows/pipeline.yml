@@ -48,7 +48,7 @@ jobs:
           echo "SCALED_VAL_PATH=dummy.csv" >> .env
           echo "SCALED_TEST_PATH=dummy.csv" >> .env
       - name: Run Pytest with Coverage
-        run: pytest tests/ --cov=src/who_will_viral/ --cov-report=xml --cov-report=term-missing
+        run: poetry run pytest tests/ --cov=src/who_will_viral/ --cov-report=xml --cov-report=term-missing
 
   validate:
     needs: [test]
