@@ -13,3 +13,4 @@ mlruns/
 *.zip
 main.py
 compare.py
+.DS_Store

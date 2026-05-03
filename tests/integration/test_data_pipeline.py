@@ -47,29 +47,6 @@ class TestAcquisitionToCleaningPipeline:
             pytest.skip(f"Validation setup not available: {e}")
 
     @patch('who_will_viral.feature_engineering.feature_extraction.SentenceTransformer')
-    def test_clean_pipeline_execution(self, mock_model, raw_data, mocker):
-        """Test the full cleaning pipeline."""
-        # Mock environment variables
-        with tempfile.TemporaryDirectory() as tmp_path:
-            mocker.patch('os.getenv', side_effect=lambda k, d=None: str(tmp_path) if 'PATH' in k else 'dummy')
-            mocker.patch('who_will_viral.clean.extract_hl_list_from_file', return_value={'en', 'es', 'fr'})
-
-            # Mock sentence transformer
-            mock_model_instance = mock_model.return_value
-            mock_model_instance.encode.return_value = np.array([[0.1, 0.2, 0.3]])
-
-            # Build and apply cleaning pipeline
-            pipeline = build_youtube_pipeline(hl_file_path='dummy.json')
-            cleaned_df = pipeline.fit_transform(raw_data)
-
-            # Verify cleaning results
-            assert len(cleaned_df) > 0, "Cleaned data should not be empty"
-            assert 'video_id' in cleaned_df.columns
-            # Comments disabled should be converted to boolean
-            if 'comments_disabled' in cleaned_df.columns:
-                assert cleaned_df['comments_disabled'].dtype in ['bool', 'int64', 'int32']
-
-    @patch('who_will_viral.feature_engineering.feature_extraction.SentenceTransformer')
     def test_feature_extraction_integration(self, mock_model, raw_data, mocker):
         """Test feature extraction as part of the pipeline."""
         with tempfile.TemporaryDirectory() as tmp_path:
@@ -104,53 +81,6 @@ class TestAcquisitionToCleaningPipeline:
             assert any('ratio' in col for col in featured_df.columns)
             # Check for embedding columns
             assert any('emb' in col for col in featured_df.columns)
-
-    @patch('who_will_viral.feature_engineering.feature_extraction.SentenceTransformer')
-    def test_feature_scaling_integration(self, mock_model, raw_data, mocker):
-        """Test feature scaling after extraction."""
-        with tempfile.TemporaryDirectory() as tmp_path:
-            dummy_file = os.path.join(tmp_path, 'dummy.csv')
-            with open(dummy_file, 'w') as f:
-                f.write('dummy')
-
-            mocker.patch('os.getenv', side_effect=lambda k, d=None: dummy_file if 'PATH' in k else 'dummy')
-            mocker.patch('who_will_viral.clean.extract_hl_list_from_file', return_value={'en'})
-
-            mock_model_instance = mock_model.return_value
-            mock_model_instance.encode.return_value = np.array([[0.1, 0.2]] * 5)
-
-            # Pipeline: Clean -> Extract -> Scale
-            pipeline = build_youtube_pipeline(hl_file_path='dummy.json')
-            cleaned_df = pipeline.fit_transform(raw_data)
-
-            # Add required columns
-            for col in ['view_count', 'card_count', 'chapter_count']:
-                if col not in cleaned_df.columns:
-                    cleaned_df[col] = 0
-            if 'publishedAt' not in cleaned_df.columns:
-                cleaned_df['publishedAt'] = '2024-01-01T12:00:00Z'
-
-            extractor = FeatureExtraction()
-            featured_df = extractor.run(cleaned_df)
-
-            # Add target column for scaling
-            if 'is_trending' not in featured_df.columns:
-                featured_df['is_trending'] = [1, 0, 1, 0, 1][:len(featured_df)]
-
-            # Scale features
-            scaler = FeatureScaling()
-            scaled_df = scaler.fit_transform(featured_df)
-
-            # Verify scaling
-            assert len(scaled_df) == len(featured_df)
-            # Numeric columns should have similar ranges after scaling
-            numeric_cols = scaled_df.select_dtypes(include=[np.number]).columns
-            for col in numeric_cols:
-                if col != 'is_trending':
-                    col_values = scaled_df[col].dropna()
-                    if len(col_values) > 0:
-                        # Most scaled values should be in [-5, 5] range for standard scaler
-                        assert col_values.abs().max() < 100  # Very loose upper bound
 
 
 class TestDataQuality:

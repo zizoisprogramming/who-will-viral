@@ -29,7 +29,6 @@ class TestModelTrainingIntegration:
 
     def test_train_val_test_split(self, training_data):
         """Test that data can be split into train/val/test sets."""
-        # Simulate the split
         train_size = int(0.6 * len(training_data))
         val_size = int(0.2 * len(training_data))
 
@@ -57,7 +56,6 @@ class TestModelTrainingIntegration:
     def test_model_trainer_initialization(self, mock_setup, training_data):
         """Test ModelTrainer can be initialized with data."""
         with tempfile.TemporaryDirectory() as tmp_path:
-            # Save training data to CSV
             train_path = os.path.join(tmp_path, 'train.csv')
             val_path = os.path.join(tmp_path, 'val.csv')
             test_path = os.path.join(tmp_path, 'test.csv')
